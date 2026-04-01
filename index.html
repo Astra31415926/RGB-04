@@ -8,771 +8,887 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg: #07070c;
-            --surface: #0d0d15;
-            --card: #111119;
-            --border: #1a1a2a;
-            --fg: #e2e2ee;
-            --muted: #585870;
-            --r: #ff3b3b;
-            --r-bg: rgba(255,59,59,0.07);
-            --r-border: rgba(255,59,59,0.28);
-            --g: #22e85c;
-            --g-bg: rgba(34,232,92,0.07);
-            --g-border: rgba(34,232,92,0.28);
-            --b: #3b8bff;
-            --b-bg: rgba(59,139,255,0.07);
-            --b-border: rgba(59,139,255,0.28);
-            --amber: #f5a623;
-            --amber-bg: rgba(245,166,35,0.07);
-            --amber-border: rgba(245,166,35,0.28);
-            --radius: 14px;
-            --radius-sm: 8px;
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --bg:#07070c;--surface:#0d0d15;--card:#111119;--border:#1a1a2a;
+            --fg:#e2e2ee;--muted:#585870;
+            --r:#ff3b3b;--r-bg:rgba(255,59,59,.07);--r-border:rgba(255,59,59,.28);
+            --g:#22e85c;--g-bg:rgba(34,232,92,.07);--g-border:rgba(34,232,92,.28);
+            --b:#3b8bff;--b-bg:rgba(59,139,255,.07);--b-border:rgba(59,139,255,.28);
+            --amber:#f5a623;--amber-bg:rgba(245,166,35,.07);--amber-border:rgba(245,166,35,.28);
+            --radius:14px;--radius-sm:8px
         }
-
-        html { font-size: 16px; }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--fg);
-            min-height: 100dvh;
-            display: flex;
-            justify-content: center;
-            overflow-x: hidden;
+        html{font-size:16px}
+        body{
+            font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--fg);
+            min-height:100dvh;display:flex;justify-content:center;overflow-x:hidden;
             background-image:
-                radial-gradient(ellipse at 15% -5%, rgba(255,59,59,0.04) 0%, transparent 55%),
-                radial-gradient(ellipse at 85% -5%, rgba(59,139,255,0.04) 0%, transparent 55%),
-                radial-gradient(ellipse at 50% 105%, rgba(34,232,92,0.025) 0%, transparent 50%);
+                radial-gradient(ellipse at 15% -5%,rgba(255,59,59,.04) 0%,transparent 55%),
+                radial-gradient(ellipse at 85% -5%,rgba(59,139,255,.04) 0%,transparent 55%),
+                radial-gradient(ellipse at 50% 105%,rgba(34,232,92,.025) 0%,transparent 50%)
         }
-
-        .container { width: 100%; max-width: 520px; padding: 20px 14px 48px; }
-
-        header { text-align: center; margin-bottom: 22px; }
-
-        h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 1.6rem;
-            letter-spacing: -0.03em;
-            background: linear-gradient(100deg, var(--r) 0%, var(--g) 50%, var(--b) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .container{width:100%;max-width:520px;padding:18px 14px 48px}
+        header{text-align:center;margin-bottom:20px}
+        h1{
+            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.55rem;
+            letter-spacing:-.03em;
+            background:linear-gradient(100deg,var(--r) 0%,var(--g) 50%,var(--b) 100%);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
         }
+        .subtitle{color:var(--muted);font-size:.78rem;margin-top:4px}
 
-        .subtitle { color: var(--muted); font-size: 0.8rem; margin-top: 4px; }
+        .status-bar{display:flex;align-items:center;gap:7px;margin-bottom:7px;font-size:.74rem;color:var(--muted);padding:0 2px}
+        .status-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .35s}
+        .status-dot.active{background:var(--g);box-shadow:0 0 8px rgba(34,232,92,.55);animation:dotP 2s ease-in-out infinite}
+        .status-dot.error{background:var(--r)}
+        @keyframes dotP{0%,100%{opacity:1}50%{opacity:.35}}
 
-        .status-bar {
-            display: flex; align-items: center; gap: 7px;
-            margin-bottom: 8px; font-size: 0.75rem;
-            color: var(--muted); padding: 0 2px;
+        .scanner-wrap{
+            position:relative;border-radius:var(--radius);overflow:hidden;
+            border:1px solid var(--border);background:#000;transition:box-shadow .45s ease
         }
+        .scanner-wrap.glow-r{box-shadow:0 0 36px rgba(255,59,59,.18),inset 0 0 24px rgba(255,59,59,.04)}
+        .scanner-wrap.glow-g{box-shadow:0 0 36px rgba(34,232,92,.18),inset 0 0 24px rgba(34,232,92,.04)}
+        .scanner-wrap.glow-b{box-shadow:0 0 36px rgba(59,139,255,.18),inset 0 0 24px rgba(59,139,255,.04)}
+        .scanner-wrap.glow-multi{box-shadow:0 0 36px rgba(255,255,255,.1),inset 0 0 20px rgba(255,255,255,.02)}
+        .scanner-wrap.glow-inv{box-shadow:0 0 30px rgba(245,166,35,.2),inset 0 0 20px rgba(245,166,35,.03)}
 
-        .status-dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--muted); flex-shrink: 0;
-            transition: background 0.35s;
+        #display{display:block;width:100%;height:auto}
+        .error-overlay{
+            position:absolute;inset:0;display:none;flex-direction:column;
+            align-items:center;justify-content:center;background:var(--surface);
+            padding:28px;text-align:center;gap:10px;z-index:2
         }
-        .status-dot.active {
-            background: var(--g);
-            box-shadow: 0 0 8px rgba(34,232,92,0.55);
-            animation: dotPulse 2s ease-in-out infinite;
+        .error-overlay.visible{display:flex}
+        .error-overlay .err-icon{font-size:2.2rem;opacity:.45}
+        .error-overlay .err-msg{color:var(--muted);font-size:.85rem;line-height:1.6;white-space:pre-line}
+
+        .controls{display:flex;gap:7px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+        .btn{
+            font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.8rem;
+            padding:7px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);
+            background:var(--card);color:var(--muted);cursor:pointer;
+            transition:all .18s ease;outline:none;-webkit-tap-highlight-color:transparent;white-space:nowrap
         }
-        .status-dot.error { background: var(--r); }
+        .btn:hover{background:var(--surface);color:var(--fg)}
+        .btn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+        .btn:active{transform:scale(.96)}
+        .btn.active{color:var(--fg)}
+        .btn-color.active{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.07)}
+        .btn-r.active{border-color:var(--r-border);background:var(--r-bg);color:var(--r)}
+        .btn-g.active{border-color:var(--g-border);background:var(--g-bg);color:var(--g)}
+        .btn-b.active{border-color:var(--b-border);background:var(--b-bg);color:var(--b)}
+        .btn-debug{border-style:dashed;font-size:.75rem;padding:7px 12px;letter-spacing:.02em}
+        .btn-debug.active{border-style:dashed;border-color:var(--amber-border);background:var(--amber-bg);color:var(--amber)}
 
-        @keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-
-        .scanner-wrap {
-            position: relative; border-radius: var(--radius);
-            overflow: hidden; border: 1px solid var(--border);
-            background: #000; transition: box-shadow 0.45s ease;
+        .info-row{
+            display:flex;align-items:center;justify-content:center;gap:6px;
+            margin-top:10px;font-size:.72rem;color:var(--muted);flex-wrap:wrap
         }
-        .scanner-wrap.glow-r { box-shadow: 0 0 36px rgba(255,59,59,0.18), inset 0 0 24px rgba(255,59,59,0.04); }
-        .scanner-wrap.glow-g { box-shadow: 0 0 36px rgba(34,232,92,0.18), inset 0 0 24px rgba(34,232,92,0.04); }
-        .scanner-wrap.glow-b { box-shadow: 0 0 36px rgba(59,139,255,0.18), inset 0 0 24px rgba(59,139,255,0.04); }
-        .scanner-wrap.glow-multi { box-shadow: 0 0 36px rgba(255,255,255,0.1), inset 0 0 20px rgba(255,255,255,0.02); }
-        .scanner-wrap.glow-inv { box-shadow: 0 0 30px rgba(245,166,35,0.2), inset 0 0 20px rgba(245,166,35,0.03); }
-
-        #display { display: block; width: 100%; height: auto; }
-
-        .error-overlay {
-            position: absolute; inset: 0; display: none;
-            flex-direction: column; align-items: center; justify-content: center;
-            background: var(--surface); padding: 28px; text-align: center;
-            gap: 10px; z-index: 2;
+        .info-label{opacity:.7}
+        .info-value{
+            font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--fg);opacity:.6
         }
-        .error-overlay.visible { display: flex; }
-        .error-overlay .err-icon { font-size: 2.2rem; opacity: 0.45; }
-        .error-overlay .err-msg { color: var(--muted); font-size: 0.85rem; line-height: 1.6; white-space: pre-line; }
+        .info-sep{opacity:.3}
 
-        .controls {
-            display: flex; gap: 7px; margin-top: 12px;
-            justify-content: center; flex-wrap: wrap;
+        .results{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+        .result-card{
+            background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+            padding:11px 10px;transition:border-color .35s,background .35s,transform .25s;
+            min-height:84px;display:flex;flex-direction:column
         }
+        .result-card.pop{transform:scale(1.03)}
+        .r-card.found{border-color:var(--r-border);background:var(--r-bg)}
+        .g-card.found{border-color:var(--g-border);background:var(--g-bg)}
+        .b-card.found{border-color:var(--b-border);background:var(--b-bg)}
 
-        .btn {
-            font-family: 'Space Grotesk', sans-serif; font-weight: 600;
-            font-size: 0.8rem; padding: 7px 16px;
-            border: 1px solid var(--border); border-radius: var(--radius-sm);
-            background: var(--card); color: var(--muted);
-            cursor: pointer; transition: all 0.18s ease;
-            outline: none; -webkit-tap-highlight-color: transparent;
-            white-space: nowrap;
+        .result-header{
+            display:flex;align-items:center;gap:5px;
+            font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.76rem;
+            margin-bottom:4px;color:var(--muted)
         }
-        .btn:hover { background: var(--surface); color: var(--fg); }
-        .btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
-        .btn:active { transform: scale(0.96); }
-        .btn.active { color: var(--fg); }
-        .btn-color.active { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.07); }
-        .btn-r.active { border-color: var(--r-border); background: var(--r-bg); color: var(--r); }
-        .btn-g.active { border-color: var(--g-border); background: var(--g-bg); color: var(--g); }
-        .btn-b.active { border-color: var(--b-border); background: var(--b-bg); color: var(--b); }
-
-        .btn-debug {
-            border-style: dashed; font-size: 0.75rem;
-            padding: 7px 12px; letter-spacing: 0.02em;
+        .r-card .result-header{color:var(--r)}
+        .g-card .result-header{color:var(--g)}
+        .b-card .result-header{color:var(--b)}
+        .ch-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+        .ch-dot-r{background:var(--r)}.ch-dot-g{background:var(--g)}.ch-dot-b{background:var(--b)}
+        .inv-badge{
+            font-size:.55rem;font-family:'Space Grotesk',sans-serif;font-weight:700;
+            background:rgba(245,166,35,.15);color:var(--amber);padding:1px 5px;
+            border-radius:4px;margin-left:auto;opacity:0;transition:opacity .3s
         }
-        .btn-debug.active {
-            border-style: dashed; border-color: var(--amber-border);
-            background: var(--amber-bg); color: var(--amber);
+        .inv-badge.visible{opacity:1}
+
+        .result-meta{
+            font-size:.62rem;font-family:'Space Grotesk',sans-serif;font-weight:600;
+            color:var(--muted);margin-bottom:4px;min-height:14px;transition:color .3s
         }
+        .result-card.found .result-meta{color:var(--amber)}
 
-        .btn-auto { font-size: 0.72rem; padding: 7px 10px; letter-spacing: 0.03em; }
-        .btn-auto.active { border-color: var(--g-border); background: var(--g-bg); color: var(--g); }
-
-        .threshold-row {
-            display: flex; align-items: center; justify-content: center;
-            gap: 8px; margin-top: 10px; font-size: 0.74rem; color: var(--muted);
+        .result-value{
+            font-size:.72rem;color:var(--muted);word-break:break-all;line-height:1.4;
+            flex:1;transition:color .3s;overflow:hidden;display:-webkit-box;
+            -webkit-line-clamp:3;-webkit-box-orient:vertical
         }
-        .threshold-row label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .threshold-row input[type="range"] { width: 100px; accent-color: var(--g); cursor: pointer; }
-        .threshold-row input[type="range"].manual { accent-color: var(--amber); }
-        .threshold-val {
-            font-family: 'Space Grotesk', sans-serif; font-weight: 600;
-            min-width: 26px; text-align: center; color: var(--fg);
+        .result-card.found .result-value{color:var(--fg)}
+
+        .best-box{
+            margin-top:12px;padding:11px 14px;background:var(--card);
+            border:1px solid var(--border);border-radius:var(--radius-sm);
+            text-align:center;font-size:.82rem;animation:slideUp .3s ease
         }
-        .cycle-ind {
-            font-size: 0.7rem; color: var(--g);
-            font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-            opacity: 0; transition: opacity 0.3s;
+        .best-box.hidden{display:none}
+        .best-label{color:var(--muted)}
+        .best-ch{font-family:'Space Grotesk',sans-serif;font-weight:700;margin-left:5px}
+        .best-ch.r{color:var(--r)}.best-ch.g{color:var(--g)}.best-ch.b{color:var(--b)}
+        .best-meta{font-size:.7rem;color:var(--amber);font-weight:600;margin-left:4px}
+        .best-data{display:block;margin-top:5px;font-size:.76rem;color:var(--fg);word-break:break-all;line-height:1.35}
+
+        @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @media(prefers-reduced-motion:reduce){
+            .status-dot.active{animation:none}
+            .result-card,.scanner-wrap,.inv-badge{transition:none}
         }
-        .cycle-ind.visible { opacity: 1; }
-
-        .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
-
-        .result-card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 12px 11px;
-            transition: border-color 0.35s, background 0.35s, transform 0.25s;
-            min-height: 82px; display: flex; flex-direction: column;
-        }
-        .result-card.pop { transform: scale(1.03); }
-        .r-card.found { border-color: var(--r-border); background: var(--r-bg); }
-        .g-card.found { border-color: var(--g-border); background: var(--g-bg); }
-        .b-card.found { border-color: var(--b-border); background: var(--b-bg); }
-
-        .result-header {
-            display: flex; align-items: center; gap: 5px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 600; font-size: 0.76rem;
-            margin-bottom: 7px; color: var(--muted);
-        }
-        .r-card .result-header { color: var(--r); }
-        .g-card .result-header { color: var(--g); }
-        .b-card .result-header { color: var(--b); }
-
-        .ch-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-        .ch-dot-r { background: var(--r); }
-        .ch-dot-g { background: var(--g); }
-        .ch-dot-b { background: var(--b); }
-
-        .inv-badge {
-            font-size: 0.56rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-            background: rgba(245,166,35,0.15); color: var(--amber);
-            padding: 1px 5px; border-radius: 4px; margin-left: auto;
-            opacity: 0; transition: opacity 0.3s;
-        }
-        .inv-badge.visible { opacity: 1; }
-
-        .result-value {
-            font-size: 0.72rem; color: var(--muted); word-break: break-all;
-            line-height: 1.4; flex: 1; transition: color 0.3s;
-            overflow: hidden; display: -webkit-box;
-            -webkit-line-clamp: 4; -webkit-box-orient: vertical;
-        }
-        .result-card.found .result-value { color: var(--fg); }
-
-        .best-box {
-            margin-top: 12px; padding: 11px 14px;
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: var(--radius-sm); text-align: center;
-            font-size: 0.82rem; animation: slideUp 0.3s ease;
-        }
-        .best-box.hidden { display: none; }
-        .best-label { color: var(--muted); }
-        .best-ch { font-family: 'Space Grotesk', sans-serif; font-weight: 700; margin-left: 5px; }
-        .best-ch.r { color: var(--r); }
-        .best-ch.g { color: var(--g); }
-        .best-ch.b { color: var(--b); }
-        .best-inv { font-size: 0.68rem; color: var(--amber); font-weight: 600; margin-left: 4px; }
-        .best-data {
-            display: block; margin-top: 5px; font-size: 0.76rem;
-            color: var(--fg); word-break: break-all; line-height: 1.35;
-        }
-
-        @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-        @media (prefers-reduced-motion: reduce) {
-            .status-dot.active { animation: none; }
-            .result-card, .scanner-wrap, .inv-badge, .cycle-ind { transition: none; }
-        }
-
-        @media (max-width: 400px) {
-            h1 { font-size: 1.3rem; }
-            .btn { padding: 6px 11px; font-size: 0.76rem; }
-            .btn-debug { padding: 6px 9px; font-size: 0.7rem; }
-            .btn-auto { padding: 6px 8px; font-size: 0.66rem; }
-            .result-card { padding: 10px 8px; min-height: 72px; }
-            .result-value { font-size: 0.68rem; -webkit-line-clamp: 3; }
-            .threshold-row input[type="range"] { width: 80px; }
+        @media(max-width:400px){
+            h1{font-size:1.3rem}
+            .btn{padding:6px 11px;font-size:.76rem}
+            .btn-debug{padding:6px 9px;font-size:.7rem}
+            .result-card{padding:9px 8px;min-height:74px}
+            .result-value{font-size:.68rem;-webkit-line-clamp:2}
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>RGB QR Scanner</h1>
-            <p class="subtitle">Три канала — инверсия — авто-порог</p>
-        </header>
+<div class="container">
+    <header>
+        <h1>RGB QR Scanner</h1>
+        <p class="subtitle">Мульти-порог · Инверсия · Независимые каналы</p>
+    </header>
 
-        <div class="scanner-wrap" id="scannerWrap">
-            <div class="status-bar">
-                <span class="status-dot" id="statusDot"></span>
-                <span id="statusText">Инициализация камеры...</span>
-            </div>
-            <canvas id="display" width="640" height="480"></canvas>
-            <div class="error-overlay" id="errorOverlay">
-                <span class="err-icon">&#x1f4f7;</span>
-                <span class="err-msg" id="errMsg"></span>
-            </div>
+    <div class="scanner-wrap" id="scannerWrap">
+        <div class="status-bar">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Инициализация камеры...</span>
         </div>
-
-        <nav class="controls" aria-label="Режим отображения">
-            <button class="btn btn-color active" data-mode="color" aria-pressed="true">Color</button>
-            <button class="btn btn-r" data-mode="r" aria-pressed="false">R</button>
-            <button class="btn btn-g" data-mode="g" aria-pressed="false">G</button>
-            <button class="btn btn-b" data-mode="b" aria-pressed="false">B</button>
-            <button class="btn btn-debug" id="debugBtn" aria-pressed="false">Debug</button>
-        </nav>
-
-        <div class="threshold-row">
-            <button class="btn btn-auto active" id="autoBtn" aria-pressed="true">AUTO</button>
-            <label>T:<input type="range" id="thresholdSlider" min="30" max="225" value="100"></label>
-            <span class="threshold-val" id="thresholdVal">100</span>
-            <span class="cycle-ind" id="cycleInd">&#x21bb;</span>
-        </div>
-
-        <section class="results" role="region" aria-label="Результаты сканирования">
-            <div class="result-card r-card" id="card-r">
-                <div class="result-header"><span class="ch-dot ch-dot-r"></span><span>Red</span><span class="inv-badge" id="inv-r">INV</span></div>
-                <div class="result-value" id="result-r">...</div>
-            </div>
-            <div class="result-card g-card" id="card-g">
-                <div class="result-header"><span class="ch-dot ch-dot-g"></span><span>Green</span><span class="inv-badge" id="inv-g">INV</span></div>
-                <div class="result-value" id="result-g">...</div>
-            </div>
-            <div class="result-card b-card" id="card-b">
-                <div class="result-header"><span class="ch-dot ch-dot-b"></span><span>Blue</span><span class="inv-badge" id="inv-b">INV</span></div>
-                <div class="result-value" id="result-b">...</div>
-            </div>
-        </section>
-
-        <div class="best-box hidden" id="bestBox">
-            <span class="best-label">Лучший канал:</span>
-            <span class="best-ch" id="bestCh"></span>
-            <span class="best-inv" id="bestInv"></span>
-            <span class="best-data" id="bestData"></span>
+        <canvas id="display" width="640" height="480"></canvas>
+        <div class="error-overlay" id="errorOverlay">
+            <span class="err-icon">&#x1f4f7;</span>
+            <span class="err-msg" id="errMsg"></span>
         </div>
     </div>
 
-    <video id="video" style="display:none" playsinline autoplay muted></video>
+    <nav class="controls" aria-label="Режим отображения">
+        <button class="btn btn-color active" data-mode="color" aria-pressed="true">Color</button>
+        <button class="btn btn-r" data-mode="r" aria-pressed="false">R</button>
+        <button class="btn btn-g" data-mode="g" aria-pressed="false">G</button>
+        <button class="btn btn-b" data-mode="b" aria-pressed="false">B</button>
+        <button class="btn btn-debug" id="debugBtn" aria-pressed="false">Debug</button>
+    </nav>
 
-    <script>
-    (function () {
-        'use strict';
+    <div class="info-row">
+        <span class="info-label">Пороги:</span>
+        <span class="info-value" id="threshDisplay">100 · 140 · 180</span>
+        <span class="info-sep">|</span>
+        <span class="info-label">Версий / канал:</span>
+        <span class="info-value" id="versionsDisplay">6</span>
+        <span class="info-sep">|</span>
+        <span class="info-label">Всего попыток:</span>
+        <span class="info-value" id="totalDisplay">18</span>
+    </div>
 
-        /* === DOM === */
-        var video        = document.getElementById('video');
-        var displayCvs   = document.getElementById('display');
-        var displayCtx   = displayCvs.getContext('2d', { willReadFrequently: false });
-        var scannerWrap  = document.getElementById('scannerWrap');
-        var statusDot    = document.getElementById('statusDot');
-        var statusText   = document.getElementById('statusText');
-        var errOverlay   = document.getElementById('errorOverlay');
-        var errMsg       = document.getElementById('errMsg');
-        var bestBox      = document.getElementById('bestBox');
-        var bestCh       = document.getElementById('bestCh');
-        var bestInv      = document.getElementById('bestInv');
-        var bestData     = document.getElementById('bestData');
-        var debugBtn     = document.getElementById('debugBtn');
-        var autoBtn      = document.getElementById('autoBtn');
-        var threshSlider = document.getElementById('thresholdSlider');
-        var threshValEl  = document.getElementById('thresholdVal');
-        var cycleInd     = document.getElementById('cycleInd');
+    <section class="results" role="region" aria-label="Результаты сканирования">
+        <div class="result-card r-card" id="card-r">
+            <div class="result-header"><span class="ch-dot ch-dot-r"></span><span>Red</span><span class="inv-badge" id="inv-r">INV</span></div>
+            <div class="result-meta" id="meta-r"></div>
+            <div class="result-value" id="result-r">...</div>
+        </div>
+        <div class="result-card g-card" id="card-g">
+            <div class="result-header"><span class="ch-dot ch-dot-g"></span><span>Green</span><span class="inv-badge" id="inv-g">INV</span></div>
+            <div class="result-meta" id="meta-g"></div>
+            <div class="result-value" id="result-g">...</div>
+        </div>
+        <div class="result-card b-card" id="card-b">
+            <div class="result-header"><span class="ch-dot ch-dot-b"></span><span>Blue</span><span class="inv-badge" id="inv-b">INV</span></div>
+            <div class="result-meta" id="meta-b"></div>
+            <div class="result-value" id="result-b">...</div>
+        </div>
+    </section>
 
-        /* === Состояние === */
-        var displayMode    = 'color';
-        var debugMode      = false;
-        var threshold      = 100;
-        var autoCycle      = true;
-        var THRESH_CYCLE   = [100, 140, 180];
-        var cycleIndex     = 0;
-        var lastFoundTime  = Date.now();
-        var processingTimer = null;
-        var audioCtx       = null;
-        var scanLineY      = 0;
-        var reducedMotion  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    <div class="best-box hidden" id="bestBox">
+        <span class="best-label">Лучший канал:</span>
+        <span class="best-ch" id="bestCh"></span>
+        <span class="best-meta" id="bestMeta"></span>
+        <span class="best-data" id="bestData"></span>
+    </div>
+</div>
 
-        var prevResults = { r: null, g: null, b: null };
-        var prevInverted = { r: false, g: false, b: false };
-        var qrLocations = { r: null, g: null, b: null };
-        var qrInvertedFlags = { r: false, g: false, b: false };
+<video id="video" style="display:none" playsinline autoplay muted></video>
 
-        var dispW = 640, dispH = 480;
-        var anW = 400, anH = 300;
-        var scX = 1, scY = 1;
+<script>
+(function () {
+    'use strict';
 
-        /* === Offscreen canvas'ы === */
-        var anCvs  = document.createElement('canvas');
-        var anCtx  = anCvs.getContext('2d', { willReadFrequently: true });
+    /* =============================================
+       КОНФИГУРАЦИЯ
+       ============================================= */
+    var THRESHOLDS = [100, 140, 180];
+    var CHANNELS   = ['r', 'g', 'b'];
+    var CH_NAMES   = { r: 'Red', g: 'Green', b: 'Blue' };
+    var CH_COLORS  = { r: '#ff3b3b', g: '#22e85c', b: '#3b8bff' };
+    var INV_COLORS = { r: '#ff8c3b', g: '#a5e84c', b: '#6cb8ff' };
+    var FPS        = 5;
+    var INTERVAL   = 1000 / FPS;
 
-        var chRCvs = document.createElement('canvas'); var chRCtx = chRCvs.getContext('2d');
-        var chGCvs = document.createElement('canvas'); var chGCtx = chGCvs.getContext('2d');
-        var chBCvs = document.createElement('canvas'); var chBCtx = chBCvs.getContext('2d');
+    /* =============================================
+       DOM
+       ============================================= */
+    var video       = document.getElementById('video');
+    var displayCvs  = document.getElementById('display');
+    var displayCtx  = displayCvs.getContext('2d', { willReadFrequently: false });
+    var scannerWrap = document.getElementById('scannerWrap');
+    var statusDot   = document.getElementById('statusDot');
+    var statusText  = document.getElementById('statusText');
+    var errOverlay  = document.getElementById('errorOverlay');
+    var errMsg      = document.getElementById('errMsg');
+    var bestBox     = document.getElementById('bestBox');
+    var bestCh      = document.getElementById('bestCh');
+    var bestMeta    = document.getElementById('bestMeta');
+    var bestData    = document.getElementById('bestData');
+    var debugBtn    = document.getElementById('debugBtn');
 
-        var binRCvs = document.createElement('canvas'); var binRCtx = binRCvs.getContext('2d');
-        var binGCvs = document.createElement('canvas'); var binGCtx = binGCvs.getContext('2d');
-        var binBCvs = document.createElement('canvas'); var binBCtx = binBCvs.getContext('2d');
+    /* =============================================
+       СОСТОЯНИЕ
+       ============================================= */
+    var displayMode   = 'color';
+    var debugMode     = false;
+    var audioCtx      = null;
+    var scanLineY     = 0;
+    var processingTimer = null;
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        var invRCvs = document.createElement('canvas'); var invRCtx = invRCvs.getContext('2d');
-        var invGCvs = document.createElement('canvas'); var invGCtx = invGCvs.getContext('2d');
-        var invBCvs = document.createElement('canvas'); var invBCtx = invBCvs.getContext('2d');
+    // Состояние победителя для каждого канала
+    var winState = {};
+    for (var wi = 0; wi < CHANNELS.length; wi++) {
+        winState[CHANNELS[wi]] = {
+            found: false, data: null, threshold: null,
+            inverted: false, location: null
+        };
+    }
 
-        /* === Буферы (выделяются один раз) === */
-        var rGray, gGray, bGray;
-        var rBin, gBin, bBin;
-        var rInv, gInv, bInv;
-        var rGrayImg, gGrayImg, bGrayImg;
-        var rBinImg, gBinImg, bBinImg;
-        var rInvImg, gInvImg, bInvImg;
+    var prevResults = { r: null, g: null, b: null };
+    var prevMeta    = { r: '', g: '', b: '' };
 
-        function initBuffers() {
-            var sz = anW * anH * 4;
-            rGray = new Uint8ClampedArray(sz); gGray = new Uint8ClampedArray(sz); bGray = new Uint8ClampedArray(sz);
-            rBin  = new Uint8ClampedArray(sz); gBin  = new Uint8ClampedArray(sz); bBin  = new Uint8ClampedArray(sz);
-            rInv  = new Uint8ClampedArray(sz); gInv  = new Uint8ClampedArray(sz); bInv  = new Uint8ClampedArray(sz);
+    /* =============================================
+       РАЗМЕРЫ CANVAS
+       ============================================= */
+    var dispW = 640, dispH = 480;
+    var anW = 400, anH = 300;
+    var scX = 1, scY = 1;
 
-            rGrayImg = new ImageData(rGray, anW, anH); gGrayImg = new ImageData(gGray, anW, anH); bGrayImg = new ImageData(bGray, anW, anH);
-            rBinImg  = new ImageData(rBin,  anW, anH); gBinImg  = new ImageData(gBin,  anW, anH); bBinImg  = new ImageData(bBin,  anW, anH);
-            rInvImg  = new ImageData(rInv,  anW, anH); gInvImg  = new ImageData(gInv,  anW, anH); bInvImg  = new ImageData(bInv,  anW, anH);
+    /* =============================================
+       OFFSCREEN CANVAS'Ы
+       ============================================= */
+    var anCvs = document.createElement('canvas');
+    var anCtx = anCvs.getContext('2d', { willReadFrequently: true });
 
-            chRCvs.width = anW; chRCvs.height = anH;
-            chGCvs.width = anW; chGCvs.height = anH;
-            chBCvs.width = anW; chBCvs.height = anH;
-            binRCvs.width = anW; binRCvs.height = anH;
-            binGCvs.width = anW; binGCvs.height = anH;
-            binBCvs.width = anW; binBCvs.height = anH;
-            invRCvs.width = anW; invRCvs.height = anH;
-            invGCvs.width = anW; invGCvs.height = anH;
-            invBCvs.width = anW; invBCvs.height = anH;
+    // Отображение грейскейл-каналов
+    var chCvs = {}, chCtx = {};
+    for (var ci = 0; ci < CHANNELS.length; ci++) {
+        var c = CHANNELS[ci];
+        chCvs[c] = document.createElement('canvas');
+        chCtx[c] = chCvs[c].getContext('2d');
+    }
 
-            scX = dispW / anW;
-            scY = dispH / anH;
+    // Временный canvas для рисования из ImageData
+    var tmpCvs = document.createElement('canvas');
+    var tmpCtx = tmpCvs.getContext('2d');
+
+    /* =============================================
+       БУФЕРЫ ПИКСЕЛЬНЫХ ДАННЫХ
+       Все выделяются один раз, переиспользуются.
+       Структура:
+         gray[ch]          — грейскейл для отображения
+         bins[ch][t]       — бинаризация, порог THRESHOLDS[t]
+         invs[ch][t]       — инверсия бинаризации
+         binImgs/ch][t]    — ImageData-обёртка (без копирования)
+         invImgs[ch][t]    — ImageData-обёртка
+       ============================================= */
+    var gray   = {};   // Uint8ClampedArray
+    var grayImg = {};  // ImageData
+    var bins   = {};   // Uint8ClampedArray[]
+    var invs   = {};   // Uint8ClampedArray[]
+    var binImgs = {};  // ImageData[]
+    var invImgs = {};  // ImageData[]
+
+    function initBuffers() {
+        var sz = anW * anH * 4;
+
+        for (var ci = 0; ci < CHANNELS.length; ci++) {
+            var ch = CHANNELS[ci];
+
+            // Грейскейл
+            gray[ch]   = new Uint8ClampedArray(sz);
+            grayImg[ch] = new ImageData(gray[ch], anW, anH);
+
+            // Бинаризация и инверсия для каждого порога
+            bins[ch]   = [];
+            invs[ch]   = [];
+            binImgs[ch] = [];
+            invImgs[ch] = [];
+
+            for (var t = 0; t < THRESHOLDS.length; t++) {
+                bins[ch].push(new Uint8ClampedArray(sz));
+                invs[ch].push(new Uint8ClampedArray(sz));
+                binImgs[ch].push(new ImageData(bins[ch][t], anW, anH));
+                invImgs[ch].push(new ImageData(invs[ch][t], anW, anH));
+            }
+
+            // Размер offscreen canvas
+            chCvs[ch].width  = anW;
+            chCvs[ch].height = anH;
         }
 
-        /* === Камера === */
-        function startCamera() {
-            if (typeof jsQR !== 'function') {
-                showError('Библиотека jsQR не загружена.\nПроверьте интернет и перезагрузите.');
+        tmpCvs.width  = anW;
+        tmpCvs.height = anH;
+
+        scX = dispW / anW;
+        scY = dispH / anH;
+    }
+
+    /* =============================================
+       КАМЕРА
+       ============================================= */
+    function startCamera() {
+        if (typeof jsQR !== 'function') {
+            showError('Библиотека jsQR не загружена.\nПроверьте интернет и перезагрузите.');
+            return;
+        }
+        statusText.textContent = 'Запрос доступа к камере...';
+
+        navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        }).then(function (stream) {
+            video.srcObject = stream;
+            video.play().then(onVideoReady).catch(onVideoReady);
+        }).catch(function (err) {
+            showError('Не удалось получить доступ к камере.\n' + err.message);
+        });
+    }
+
+    function onVideoReady() {
+        var vw = video.videoWidth, vh = video.videoHeight;
+        if (!vw || !vh) {
+            if (video.readyState >= 2) { vw = video.videoWidth; vh = video.videoHeight; }
+            else {
+                video.addEventListener('loadeddata', function h() {
+                    video.removeEventListener('loadeddata', h);
+                    onVideoReady();
+                });
                 return;
             }
-            statusText.textContent = 'Запрос доступа к камере...';
-
-            navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-                audio: false
-            }).then(function (stream) {
-                video.srcObject = stream;
-                video.play().then(function () { onVideoReady(); }).catch(function () { onVideoReady(); });
-            }).catch(function (err) {
-                showError('Не удалось получить доступ к камере.\n' + err.message);
-            });
         }
 
-        function onVideoReady() {
-            var vw = video.videoWidth, vh = video.videoHeight;
-            if (!vw || !vh) {
-                if (video.readyState >= 2) { vw = video.videoWidth; vh = video.videoHeight; }
-                else { video.addEventListener('loadeddata', function h() { video.removeEventListener('loadeddata', h); onVideoReady(); }); return; }
-            }
+        dispW = Math.min(640, vw);
+        dispH = Math.round(dispW * vh / vw);
+        displayCvs.width  = dispW;
+        displayCvs.height = dispH;
 
-            dispW = Math.min(640, vw); dispH = Math.round(dispW * vh / vw);
-            displayCvs.width = dispW; displayCvs.height = dispH;
+        anW = Math.min(400, vw);
+        anH = Math.round(anW * vh / vw);
+        anCvs.width  = anW;
+        anCvs.height = anH;
 
-            anW = Math.min(400, vw); anH = Math.round(anW * vh / vw);
-            anCvs.width = anW; anCvs.height = anH;
+        initBuffers();
 
-            initBuffers();
+        statusDot.classList.add('active');
+        statusText.textContent = 'Сканирование — ' + FPS + ' к/с';
+        processingTimer = setInterval(processFrame, INTERVAL);
+    }
 
-            threshold = THRESH_CYCLE[0]; cycleIndex = 0;
-            threshSlider.value = threshold; threshValEl.textContent = threshold;
+    function showError(msg) {
+        statusDot.classList.add('error');
+        statusText.textContent = 'Ошибка';
+        errOverlay.classList.add('visible');
+        errMsg.textContent = msg;
+        displayCvs.style.display = 'none';
+    }
 
-            statusDot.classList.add('active');
-            statusText.textContent = 'Сканирование — 5 к/с';
-            processingTimer = setInterval(processFrame, 200);
+    /* =============================================
+       ОСНОВНОЙ ЦИКЛ ОБРАБОТКИ
+       ============================================= */
+    function processFrame() {
+        // 1. Захват кадра
+        anCtx.drawImage(video, 0, 0, anW, anH);
+        var imgData = anCtx.getImageData(0, 0, anW, anH);
+        var px = imgData.data;
+        var len = px.length;
+
+        // 2. Разделение на каналы (грейскейл)
+        var rG = gray.r, gG = gray.g, bG = gray.b;
+        for (var i = 0; i < len; i += 4) {
+            var rv = px[i], gv = px[i + 1], bv = px[i + 2];
+            rG[i] = rv; rG[i+1] = rv; rG[i+2] = rv; rG[i+3] = 255;
+            gG[i] = gv; gG[i+1] = gv; gG[i+2] = gv; gG[i+3] = 255;
+            bG[i] = bv; bG[i+1] = bv; bG[i+2] = bv; bG[i+3] = 255;
         }
 
-        function showError(msg) {
-            statusDot.classList.add('error'); statusText.textContent = 'Ошибка';
-            errOverlay.classList.add('visible'); errMsg.textContent = msg;
-            displayCvs.style.display = 'none';
+        // Отрисовка грейскейл для не-debug режима
+        chCtx.r.putImageData(grayImg.r, 0, 0);
+        chCtx.g.putImageData(grayImg.g, 0, 0);
+        chCtx.b.putImageData(grayImg.b, 0, 0);
+
+        // 3. Бинаризация всех каналов по всем порогам
+        binarizeChannel('r');
+        binarizeChannel('g');
+        binarizeChannel('b');
+
+        // 4. Декодирование QR — каждый канал независимо
+        decodeChannel('r');
+        decodeChannel('g');
+        decodeChannel('b');
+
+        // 5. Обновление UI
+        updateResults();
+
+        // 6. Рендер
+        renderDisplay();
+    }
+
+    /* =============================================
+       БИНАРИЗАЦИЯ: один проход по каналу,
+       сразу все пороги + инверсии
+       ============================================= */
+    function binarizeChannel(ch) {
+        var src  = gray[ch];
+        var bArr = bins[ch];
+        var iArr = invs[ch];
+        var len  = src.length;
+
+        for (var i = 0; i < len; i += 4) {
+            var v = src[i];
+            for (var t = 0; t < THRESHOLDS.length; t++) {
+                var bv = v > THRESHOLDS[t] ? 255 : 0;
+                var iv = 255 - bv;
+                var b = bArr[t], n = iArr[t];
+                b[i] = bv; b[i+1] = bv; b[i+2] = bv; b[i+3] = 255;
+                n[i] = iv; n[i+1] = iv; n[i+2] = iv; n[i+3] = 255;
+            }
         }
+    }
 
-        /* === Основной цикл === */
-        function processFrame() {
-            anCtx.drawImage(video, 0, 0, anW, anH);
-            var imgData = anCtx.getImageData(0, 0, anW, anH);
-            var px = imgData.data, len = px.length, th = threshold;
+    /* =============================================
+       ДЕКОДИРОВАНИЕ: для каждого порога — normal,
+       затем inverted. Early exit при успехе.
+       ============================================= */
+    function decodeChannel(ch) {
+        var ws = winState[ch];
+        ws.found = false;
+        ws.data  = null;
+        ws.location = null;
+        ws.threshold = null;
+        ws.inverted  = false;
 
-            // Один проход: грейскейл + бинаризация + инверсия
-            for (var i = 0; i < len; i += 4) {
-                var r = px[i], g = px[i + 1], b = px[i + 2];
-
-                rGray[i]=r; rGray[i+1]=r; rGray[i+2]=r; rGray[i+3]=255;
-                gGray[i]=g; gGray[i+1]=g; gGray[i+2]=g; gGray[i+3]=255;
-                bGray[i]=b; bGray[i+1]=b; bGray[i+2]=b; bGray[i+3]=255;
-
-                var rv = r > th ? 255 : 0, gv = g > th ? 255 : 0, bv = b > th ? 255 : 0;
-                rBin[i]=rv; rBin[i+1]=rv; rBin[i+2]=rv; rBin[i+3]=255;
-                gBin[i]=gv; gBin[i+1]=gv; gBin[i+2]=gv; gBin[i+3]=255;
-                bBin[i]=bv; bBin[i+1]=bv; bBin[i+2]=bv; bBin[i+3]=255;
-
-                var iv = 255 - rv, jv = 255 - gv, kv = 255 - bv;
-                rInv[i]=iv; rInv[i+1]=iv; rInv[i+2]=iv; rInv[i+3]=255;
-                gInv[i]=jv; gInv[i+1]=jv; gInv[i+2]=jv; gInv[i+3]=255;
-                bInv[i]=kv; bInv[i+1]=kv; bInv[i+2]=kv; bInv[i+3]=255;
+        for (var t = 0; t < THRESHOLDS.length; t++) {
+            // Обычная бинаризация
+            var res = jsQR(bins[ch][t], anW, anH);
+            if (res) {
+                ws.found    = true;
+                ws.data     = res.data;
+                ws.location = res.location;
+                ws.threshold = THRESHOLDS[t];
+                ws.inverted  = false;
+                return;
             }
 
-            // Отрисовка на offscreen canvas'ах
-            chRCtx.putImageData(rGrayImg, 0, 0); chGCtx.putImageData(gGrayImg, 0, 0); chBCtx.putImageData(bGrayImg, 0, 0);
-            binRCtx.putImageData(rBinImg, 0, 0); binGCtx.putImageData(gBinImg, 0, 0); binBCtx.putImageData(bBinImg, 0, 0);
-            invRCtx.putImageData(rInvImg, 0, 0); invGCtx.putImageData(gInvImg, 0, 0); invBCtx.putImageData(bInvImg, 0, 0);
-
-            // Декодирование: сначала обычные, потом инверсия (оптимизация)
-            var rRes = jsQR(rBin, anW, anH);
-            var gRes = jsQR(gBin, anW, anH);
-            var bRes = jsQR(bBin, anW, anH);
-            var rWI = false, gWI = false, bWI = false;
-
-            if (!rRes && !gRes && !bRes) {
-                var ri = jsQR(rInv, anW, anH), gi = jsQR(gInv, anW, anH), bi = jsQR(bInv, anW, anH);
-                if (ri) { rRes = ri; rWI = true; }
-                if (gi) { gRes = gi; gWI = true; }
-                if (bi) { bRes = bi; bWI = true; }
+            // Инвертированная бинаризация
+            res = jsQR(invs[ch][t], anW, anH);
+            if (res) {
+                ws.found    = true;
+                ws.data     = res.data;
+                ws.location = res.location;
+                ws.threshold = THRESHOLDS[t];
+                ws.inverted  = true;
+                return;
             }
-
-            qrLocations.r = rRes ? rRes.location : null;
-            qrLocations.g = gRes ? gRes.location : null;
-            qrLocations.b = bRes ? bRes.location : null;
-            qrInvertedFlags.r = rWI; qrInvertedFlags.g = gWI; qrInvertedFlags.b = bWI;
-
-            // Threshold cycling
-            var anyFound = !!(rRes || gRes || bRes);
-            if (anyFound) {
-                lastFoundTime = Date.now();
-                cycleInd.classList.remove('visible');
-            } else if (autoCycle && (Date.now() - lastFoundTime > 1000)) {
-                cycleIndex = (cycleIndex + 1) % THRESH_CYCLE.length;
-                threshold = THRESH_CYCLE[cycleIndex];
-                threshSlider.value = threshold;
-                threshValEl.textContent = threshold;
-                lastFoundTime = Date.now();
-                cycleInd.classList.add('visible');
-                setTimeout(function () { cycleInd.classList.remove('visible'); }, 600);
-            }
-
-            updateResults(rRes, gRes, bRes, rWI, gWI, bWI);
-            renderDisplay();
         }
+    }
 
-        /* === Обновление результатов === */
-        function updateResults(rRes, gRes, bRes, rWI, gWI, bWI) {
-            var results  = { r: rRes ? rRes.data : null, g: gRes ? gRes.data : null, b: bRes ? bRes.data : null };
-            var inverted = { r: rWI, g: gWI, b: bWI };
-            var hasNew = false, foundArr = [], channels = ['r', 'g', 'b'];
+    /* =============================================
+       ОБНОВЛЕНИЕ РЕЗУЛЬТАТОВ В DOM
+       ============================================= */
+    function updateResults() {
+        var hasNew   = false;
+        var foundArr = [];
 
-            for (var ci = 0; ci < 3; ci++) {
-                var ch = channels[ci];
-                var el = document.getElementById('result-' + ch);
-                var card = document.getElementById('card-' + ch);
-                var badge = document.getElementById('inv-' + ch);
+        for (var ci = 0; ci < CHANNELS.length; ci++) {
+            var ch   = CHANNELS[ci];
+            var ws   = winState[ch];
+            var el   = document.getElementById('result-' + ch);
+            var card = document.getElementById('card-' + ch);
+            var meta = document.getElementById('meta-' + ch);
+            var badge = document.getElementById('inv-' + ch);
 
-                if (results[ch]) {
-                    foundArr.push(ch);
-                    if (prevResults[ch] !== results[ch] || prevInverted[ch] !== inverted[ch]) {
-                        el.textContent = results[ch];
-                        card.classList.add('found');
-                        card.classList.remove('pop');
-                        void card.offsetWidth;
-                        card.classList.add('pop');
-                        setTimeout((function (c) { return function () { c.classList.remove('pop'); }; })(card), 280);
-                        hasNew = true;
-                    }
-                    badge.classList.toggle('visible', inverted[ch]);
-                } else {
-                    el.textContent = '...';
-                    card.classList.remove('found', 'pop');
-                    badge.classList.remove('visible');
+            if (ws.found) {
+                foundArr.push(ch);
+                var metaStr = 'T:' + ws.threshold + (ws.inverted ? ' INV' : '');
+
+                if (prevResults[ch] !== ws.data || prevMeta[ch] !== metaStr) {
+                    el.textContent   = ws.data;
+                    meta.textContent = metaStr;
+                    card.classList.add('found');
+                    card.classList.remove('pop');
+                    void card.offsetWidth;
+                    card.classList.add('pop');
+                    setTimeout((function (c) {
+                        return function () { c.classList.remove('pop'); };
+                    })(card), 280);
+                    hasNew = true;
                 }
-            }
 
-            if (hasNew) playBeep();
-
-            if (foundArr.length > 0) {
-                var best = foundArr[0];
-                var names = { r: 'Red', g: 'Green', b: 'Blue' };
-                bestCh.textContent = names[best];
-                bestCh.className = 'best-ch ' + best;
-                bestData.textContent = results[best];
-                bestBox.classList.remove('hidden');
-
-                if (inverted[best]) { bestInv.textContent = '(инверсия)'; bestInv.style.display = ''; }
-                else { bestInv.style.display = 'none'; }
-
-                if (foundArr.length > 1) scannerWrap.className = 'scanner-wrap glow-multi';
-                else if (inverted[best]) scannerWrap.className = 'scanner-wrap glow-inv';
-                else scannerWrap.className = 'scanner-wrap glow-' + best;
+                badge.classList.toggle('visible', ws.inverted);
             } else {
-                bestBox.classList.add('hidden');
-                scannerWrap.className = 'scanner-wrap';
+                el.textContent   = '...';
+                meta.textContent = '';
+                card.classList.remove('found', 'pop');
+                badge.classList.remove('visible');
             }
-
-            prevResults.r = results.r; prevResults.g = results.g; prevResults.b = results.b;
-            prevInverted.r = inverted.r; prevInverted.g = inverted.g; prevInverted.b = inverted.b;
         }
 
-        /* === Рендер === */
-        function renderDisplay() {
-            displayCtx.fillStyle = '#000';
-            displayCtx.fillRect(0, 0, dispW, dispH);
+        if (hasNew) playBeep();
 
-            if (debugMode) {
-                displayCtx.imageSmoothingEnabled = false;
-                if (displayMode === 'color') {
-                    // Мозаика: грейскейл | бинаризация | инверсия
-                    var tw = Math.floor(dispW / 3), rw = dispW - tw * 2;
-                    displayCtx.drawImage(chRCvs, 0, 0, tw, dispH);
-                    displayCtx.drawImage(binRCvs, tw, 0, tw, dispH);
-                    displayCtx.drawImage(invRCvs, tw * 2, 0, rw, dispH);
+        // «Лучший канал»
+        if (foundArr.length > 0) {
+            var best = foundArr[0];
+            var bws  = winState[best];
+            bestCh.textContent = CH_NAMES[best];
+            bestCh.className   = 'best-ch ' + best;
+            bestMeta.textContent = '(T:' + bws.threshold + (bws.inverted ? ', инверсия)' : ')');
+            bestData.textContent = bws.data;
+            bestBox.classList.remove('hidden');
 
-                    displayCtx.strokeStyle = 'rgba(255,255,255,0.18)';
-                    displayCtx.lineWidth = 1;
-                    displayCtx.beginPath();
-                    displayCtx.moveTo(tw, 0); displayCtx.lineTo(tw, dispH);
-                    displayCtx.moveTo(tw * 2, 0); displayCtx.lineTo(tw * 2, dispH);
-                    displayCtx.stroke();
-
-                    displayCtx.font = '600 11px "Space Grotesk", sans-serif';
-                    displayCtx.textAlign = 'center';
-                    displayCtx.fillStyle = 'rgba(255,255,255,0.45)';
-                    displayCtx.fillText('Gray', tw * 0.5, 16);
-                    displayCtx.fillText('Bin', tw * 1.5, 16);
-                    displayCtx.fillText('Inv', tw * 2 + rw * 0.5, 16);
-
-                    // Подпись активного канала
-                    var chNames = { r: 'Red', g: 'Green', b: 'Blue' };
-                    displayCtx.font = '700 10px "Space Grotesk", sans-serif';
-                    displayCtx.fillStyle = 'rgba(255,255,255,0.25)';
-                    displayCtx.fillText('Показан канал: ' + chNames[displayMode === 'color' ? 'r' : displayMode], dispW / 2, dispH - 8);
-                } else {
-                    var src = displayMode === 'r' ? binRCvs : displayMode === 'g' ? binGCvs : binBCvs;
-                    displayCtx.drawImage(src, 0, 0, dispW, dispH);
-                }
-                displayCtx.imageSmoothingEnabled = true;
+            if (foundArr.length > 1) {
+                scannerWrap.className = 'scanner-wrap glow-multi';
+            } else if (bws.inverted) {
+                scannerWrap.className = 'scanner-wrap glow-inv';
             } else {
-                var src2;
-                switch (displayMode) {
-                    case 'r': src2 = chRCvs; break;
-                    case 'g': src2 = chGCvs; break;
-                    case 'b': src2 = chBCvs; break;
-                    default:  src2 = video;
-                }
-                displayCtx.drawImage(src2, 0, 0, dispW, dispH);
+                scannerWrap.className = 'scanner-wrap glow-' + best;
             }
-
-            drawCornerBrackets();
-
-            // Рамки QR (только в обычном режиме)
-            if (!debugMode) {
-                var colors = { r: '#ff3b3b', g: '#22e85c', b: '#3b8bff' };
-                var invColors = { r: '#ff8c3b', g: '#a5e84c', b: '#6cb8ff' };
-                for (var ch in qrLocations) {
-                    if (qrLocations[ch]) {
-                        var c = qrInvertedFlags[ch] ? invColors[ch] : colors[ch];
-                        drawQRFrame(qrLocations[ch], c, qrInvertedFlags[ch]);
-                    }
-                }
-            }
-
-            if (!reducedMotion && !debugMode) drawScanLine();
-            drawThresholdLabel();
+        } else {
+            bestBox.classList.add('hidden');
+            scannerWrap.className = 'scanner-wrap';
         }
 
-        function drawCornerBrackets() {
-            var mx = Math.round(dispW * 0.08), my = Math.round(dispH * 0.08);
-            var sz = Math.round(Math.min(dispW, dispH) * 0.06);
-            var al = debugMode ? 0.15 : 0.28;
-            displayCtx.strokeStyle = 'rgba(255,255,255,' + al + ')';
-            displayCtx.lineWidth = 2; displayCtx.lineCap = 'round';
+        for (var pi = 0; pi < CHANNELS.length; pi++) {
+            var pch = CHANNELS[pi];
+            prevResults[pch] = winState[pch].found ? winState[pch].data : null;
+            prevMeta[pch] = winState[pch].found
+                ? 'T:' + winState[pch].threshold + (winState[pch].inverted ? ' INV' : '')
+                : '';
+        }
+    }
 
-            displayCtx.beginPath();
-            displayCtx.moveTo(mx, my+sz); displayCtx.lineTo(mx, my); displayCtx.lineTo(mx+sz, my); displayCtx.stroke();
-            displayCtx.beginPath();
-            displayCtx.moveTo(dispW-mx-sz, my); displayCtx.lineTo(dispW-mx, my); displayCtx.lineTo(dispW-mx, my+sz); displayCtx.stroke();
-            displayCtx.beginPath();
-            displayCtx.moveTo(mx, dispH-my-sz); displayCtx.lineTo(mx, dispH-my); displayCtx.lineTo(mx+sz, dispH-my); displayCtx.stroke();
-            displayCtx.beginPath();
-            displayCtx.moveTo(dispW-mx-sz, dispH-my); displayCtx.lineTo(dispW-mx, dispH-my); displayCtx.lineTo(dispW-mx, dispH-my-sz); displayCtx.stroke();
+    /* =============================================
+       РЕНДЕР НА ОСНОВНОМ CANVAS
+       ============================================= */
+    function renderDisplay() {
+        displayCtx.fillStyle = '#000';
+        displayCtx.fillRect(0, 0, dispW, dispH);
+
+        if (debugMode) {
+            if (displayMode === 'color') {
+                drawDebugAllChannels();
+            } else {
+                drawDebugSingleChannel(displayMode);
+            }
+        } else {
+            drawNormalView();
         }
 
-        function drawQRFrame(loc, color, isInv) {
+        drawCornerBrackets(debugMode ? 0.12 : 0.25);
+
+        if (!reducedMotion && !debugMode) drawScanLine();
+    }
+
+    /* --- Обычный вид --- */
+    function drawNormalView() {
+        var src;
+        switch (displayMode) {
+            case 'r': src = chCvs.r; break;
+            case 'g': src = chCvs.g; break;
+            case 'b': src = chCvs.b; break;
+            default:  src = video;
+        }
+        displayCtx.drawImage(src, 0, 0, dispW, dispH);
+
+        // Рамки найденных QR
+        for (var ci = 0; ci < CHANNELS.length; ci++) {
+            var ch = CHANNELS[ci];
+            if (winState[ch].found && winState[ch].location) {
+                var col = winState[ch].inverted ? INV_COLORS[ch] : CH_COLORS[ch];
+                drawQRFrame(winState[ch].location, col, winState[ch].inverted);
+            }
+        }
+    }
+
+    /* --- Debug: все каналы (3 колонки) --- */
+    function drawDebugAllChannels() {
+        displayCtx.imageSmoothingEnabled = false;
+        var colW = Math.floor(dispW / 3);
+        var remW = dispW - colW * 2;
+
+        for (var ci = 0; ci < CHANNELS.length; ci++) {
+            var ch  = CHANNELS[ci];
+            var ws  = winState[ch];
+            var x   = ci * colW;
+            var w   = ci < 2 ? colW : remW;
+            var imgData;
+
+            if (ws.found) {
+                var ti = THRESHOLDS.indexOf(ws.threshold);
+                imgData = ws.inverted ? invImgs[ch][ti] : binImgs[ch][ti];
+            } else {
+                imgData = binImgs[ch][0];
+            }
+
+            tmpCtx.putImageData(imgData, 0, 0);
+            displayCtx.drawImage(tmpCvs, x, 0, w, dispH);
+
+            // Подпись
+            var label = ch.toUpperCase();
+            if (ws.found) {
+                label += '  T:' + ws.threshold + (ws.inverted ? ' INV' : '');
+                label += '  \u2713'; // ✓
+            } else {
+                label += '  \u2014'; // —
+            }
+
             displayCtx.save();
-            displayCtx.strokeStyle = color;
-            displayCtx.lineWidth = isInv ? 2 : 3;
-            displayCtx.lineJoin = 'round';
-            displayCtx.shadowColor = color;
-            displayCtx.shadowBlur = isInv ? 6 : 10;
-            if (isInv) displayCtx.setLineDash([6, 4]);
+            displayCtx.font = '600 10px "Space Grotesk",sans-serif';
+            displayCtx.textAlign = 'center';
+            displayCtx.textBaseline = 'top';
 
-            displayCtx.beginPath();
-            displayCtx.moveTo(loc.topLeftCorner.x * scX, loc.topLeftCorner.y * scY);
-            displayCtx.lineTo(loc.topRightCorner.x * scX, loc.topRightCorner.y * scY);
-            displayCtx.lineTo(loc.bottomRightCorner.x * scX, loc.bottomRightCorner.y * scY);
-            displayCtx.lineTo(loc.bottomLeftCorner.x * scX, loc.bottomLeftCorner.y * scY);
-            displayCtx.closePath();
-            displayCtx.stroke();
+            // Фон подписи
+            var tw = displayCtx.measureText(label).width + 8;
+            var lx = x + w / 2 - tw / 2;
+            displayCtx.fillStyle = 'rgba(0,0,0,0.55)';
+            displayCtx.fillRect(lx, 4, tw, 16);
+
+            displayCtx.fillStyle = ws.found ? CH_COLORS[ch] : 'rgba(255,255,255,0.35)';
+            displayCtx.fillText(label, x + w / 2, 7);
+
+            // Рамка победителя
+            if (ws.found) {
+                displayCtx.strokeStyle = CH_COLORS[ch];
+                displayCtx.lineWidth = 2;
+                displayCtx.strokeRect(x + 1, 1, w - 2, dispH - 2);
+            }
             displayCtx.restore();
         }
 
-        function drawScanLine() {
-            scanLineY = (scanLineY + 10) % dispH;
-            var half = 28;
-            var grad = displayCtx.createLinearGradient(0, scanLineY - half, 0, scanLineY + half);
-            grad.addColorStop(0, 'rgba(255,255,255,0)');
-            grad.addColorStop(0.5, 'rgba(255,255,255,0.12)');
-            grad.addColorStop(1, 'rgba(255,255,255,0)');
-            displayCtx.fillStyle = grad;
-            displayCtx.fillRect(0, scanLineY - half, dispW, half * 2);
+        // Разделители
+        displayCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+        displayCtx.lineWidth = 1;
+        displayCtx.beginPath();
+        displayCtx.moveTo(colW, 0); displayCtx.lineTo(colW, dispH);
+        displayCtx.moveTo(colW * 2, 0); displayCtx.lineTo(colW * 2, dispH);
+        displayCtx.stroke();
+
+        displayCtx.imageSmoothingEnabled = true;
+    }
+
+    /* --- Debug: один канал (сетка 3×2) --- */
+    function drawDebugSingleChannel(ch) {
+        displayCtx.imageSmoothingEnabled = false;
+
+        var cols = THRESHOLDS.length;
+        var rows = 2; // normal + inverted
+        var cellW = Math.floor(dispW / cols);
+        var cellH = Math.floor(dispH / rows);
+        var ws = winState[ch];
+
+        for (var t = 0; t < THRESHOLDS.length; t++) {
+            // Верхний ряд: нормальная бинаризация
+            tmpCtx.putImageData(binImgs[ch][t], 0, 0);
+            displayCtx.drawImage(tmpCvs, t * cellW, 0, cellW, cellH);
+
+            // Нижний ряд: инвертированная
+            tmpCtx.putImageData(invImgs[ch][t], 0, 0);
+            displayCtx.drawImage(tmpCvs, t * cellW, cellH, cellW, dispH - cellH);
         }
 
-        function drawThresholdLabel() {
-            var text = 'T:' + threshold;
-            if (autoCycle) text += ' AUTO';
+        // Подписи ячеек
+        displayCtx.save();
+        displayCtx.font = '600 11px "Space Grotesk",sans-serif';
+        displayCtx.textAlign = 'center';
+        displayCtx.textBaseline = 'top';
 
-            displayCtx.save();
-            displayCtx.font = '600 11px "Space Grotesk", sans-serif';
-            var tw = displayCtx.measureText(text).width;
-            var px = 8, bx = dispW - tw - px * 2 - 4, by = 4, bw = tw + px * 2, bh = 20;
+        for (var t = 0; t < THRESHOLDS.length; t++) {
+            var cx = t * cellW + cellW / 2;
+            var isWin = ws.found && ws.threshold === THRESHOLDS[t];
 
-            displayCtx.fillStyle = 'rgba(0,0,0,0.6)';
-            displayCtx.beginPath();
-            if (displayCtx.roundRect) displayCtx.roundRect(bx, by, bw, bh, 4);
-            else displayCtx.rect(bx, by, bw, bh);
-            displayCtx.fill();
+            // Подпись «Нормальная»
+            drawCellLabel(cx, 5, 'T:' + THRESHOLDS[t], isWin && !ws.inverted, CH_COLORS[ch]);
 
-            displayCtx.fillStyle = autoCycle ? 'rgba(34,232,92,0.85)' : 'rgba(245,166,35,0.85)';
-            displayCtx.textBaseline = 'middle'; displayCtx.textAlign = 'left';
-            displayCtx.fillText(text, bx + px, by + bh / 2);
-            displayCtx.restore();
-        }
+            // Подпись «Инвертированная»
+            drawCellLabel(cx, cellH + 5, 'T:' + THRESHOLDS[t] + ' INV', isWin && ws.inverted, '#f5a623');
 
-        /* === Звук === */
-        function playBeep() {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(1046.5, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(1318.5, audioCtx.currentTime + 0.06);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
-                osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.13);
-            } catch (_) {}
-        }
+            // Рамка победителя
+            if (isWin) {
+                var fy = ws.inverted ? cellH : 0;
+                var fh = ws.inverted ? (dispH - cellH) : cellH;
+                displayCtx.strokeStyle = ws.inverted ? '#f5a623' : CH_COLORS[ch];
+                displayCtx.lineWidth = 3;
+                displayCtx.strokeRect(t * cellW + 1.5, fy + 1.5, cellW - 3, fh - 3);
 
-        /* === Кнопки каналов === */
-        var modeBtns = document.querySelectorAll('.btn[data-mode]');
-        for (var bi = 0; bi < modeBtns.length; bi++) {
-            modeBtns[bi].addEventListener('click', function () {
-                displayMode = this.dataset.mode;
-                for (var j = 0; j < modeBtns.length; j++) {
-                    modeBtns[j].classList.remove('active');
-                    modeBtns[j].setAttribute('aria-pressed', 'false');
-                }
-                this.classList.add('active');
-                this.setAttribute('aria-pressed', 'true');
-            });
-        }
-
-        /* Debug toggle */
-        debugBtn.addEventListener('click', function () {
-            debugMode = !debugMode;
-            this.classList.toggle('active', debugMode);
-            this.setAttribute('aria-pressed', String(debugMode));
-        });
-
-        /* Auto toggle */
-        autoBtn.addEventListener('click', function () {
-            autoCycle = !autoCycle;
-            this.classList.toggle('active', autoCycle);
-            this.setAttribute('aria-pressed', String(autoCycle));
-            threshSlider.classList.toggle('manual', !autoCycle);
-
-            if (autoCycle) {
-                var closest = 0, minDiff = Infinity;
-                for (var i = 0; i < THRESH_CYCLE.length; i++) {
-                    var diff = Math.abs(threshold - THRESH_CYCLE[i]);
-                    if (diff < minDiff) { minDiff = diff; closest = i; }
-                }
-                cycleIndex = closest;
-                threshold = THRESH_CYCLE[cycleIndex];
-                threshSlider.value = threshold;
-                threshValEl.textContent = threshold;
-                lastFoundTime = Date.now();
+                // Галочка
+                displayCtx.font = '700 22px "Space Grotesk",sans-serif';
+                displayCtx.fillStyle = ws.inverted ? '#f5a623' : CH_COLORS[ch];
+                displayCtx.globalAlpha = 0.5;
+                displayCtx.fillText('\u2713', cx, fy + fh / 2 - 14);
+                displayCtx.globalAlpha = 1;
+                displayCtx.font = '600 11px "Space Grotesk",sans-serif';
             }
-        });
+        }
+        displayCtx.restore();
 
-        /* Слайдер */
-        threshSlider.addEventListener('input', function () {
-            threshold = parseInt(this.value, 10);
-            threshValEl.textContent = threshold;
-            if (autoCycle) {
-                autoCycle = false;
-                autoBtn.classList.remove('active');
-                autoBtn.setAttribute('aria-pressed', 'false');
-                threshSlider.classList.add('manual');
+        // Сетка
+        displayCtx.strokeStyle = 'rgba(255,255,255,0.12)';
+        displayCtx.lineWidth = 1;
+        displayCtx.beginPath();
+        for (var t = 1; t < THRESHOLDS.length; t++) {
+            displayCtx.moveTo(t * cellW, 0); displayCtx.lineTo(t * cellW, dispH);
+        }
+        displayCtx.moveTo(0, cellH); displayCtx.lineTo(dispW, cellH);
+        displayCtx.stroke();
+
+        // Подпись канала внизу
+        displayCtx.save();
+        displayCtx.font = '600 10px "Space Grotesk",sans-serif';
+        displayCtx.textAlign = 'center';
+        displayCtx.textBaseline = 'bottom';
+        displayCtx.fillStyle = 'rgba(255,255,255,0.25)';
+        displayCtx.fillText('Канал: ' + CH_NAMES[ch] + '  |  ' + THRESHOLDS.length + ' порога \u00d7 2 = 6 версий', dispW / 2, dispH - 4);
+        displayCtx.restore();
+
+        displayCtx.imageSmoothingEnabled = true;
+    }
+
+    function drawCellLabel(cx, y, text, highlight, color) {
+        var tw = displayCtx.measureText(text).width + 8;
+        var lx = cx - tw / 2;
+        displayCtx.fillStyle = 'rgba(0,0,0,0.55)';
+        displayCtx.fillRect(lx, y, tw, 16);
+        displayCtx.fillStyle = highlight ? color : 'rgba(255,255,255,0.4)';
+        displayCtx.fillText(text, cx, y + 2);
+    }
+
+    /* =============================================
+       ВСПОМОГАТЕЛЬНЫЕ ЭЛЕМЕНТЫ CANVAS
+       ============================================= */
+    function drawCornerBrackets(alpha) {
+        var mx = Math.round(dispW * 0.06), my = Math.round(dispH * 0.06);
+        var sz = Math.round(Math.min(dispW, dispH) * 0.05);
+        displayCtx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
+        displayCtx.lineWidth = 2;
+        displayCtx.lineCap = 'round';
+
+        displayCtx.beginPath();
+        displayCtx.moveTo(mx, my + sz); displayCtx.lineTo(mx, my); displayCtx.lineTo(mx + sz, my);
+        displayCtx.stroke();
+        displayCtx.beginPath();
+        displayCtx.moveTo(dispW - mx - sz, my); displayCtx.lineTo(dispW - mx, my); displayCtx.lineTo(dispW - mx, my + sz);
+        displayCtx.stroke();
+        displayCtx.beginPath();
+        displayCtx.moveTo(mx, dispH - my - sz); displayCtx.lineTo(mx, dispH - my); displayCtx.lineTo(mx + sz, dispH - my);
+        displayCtx.stroke();
+        displayCtx.beginPath();
+        displayCtx.moveTo(dispW - mx - sz, dispH - my); displayCtx.lineTo(dispW - mx, dispH - my); displayCtx.lineTo(dispW - mx, dispH - my - sz);
+        displayCtx.stroke();
+    }
+
+    function drawQRFrame(loc, color, isInv) {
+        displayCtx.save();
+        displayCtx.strokeStyle = color;
+        displayCtx.lineWidth = isInv ? 2 : 3;
+        displayCtx.lineJoin = 'round';
+        displayCtx.shadowColor = color;
+        displayCtx.shadowBlur = isInv ? 6 : 10;
+        if (isInv) displayCtx.setLineDash([6, 4]);
+
+        displayCtx.beginPath();
+        displayCtx.moveTo(loc.topLeftCorner.x * scX, loc.topLeftCorner.y * scY);
+        displayCtx.lineTo(loc.topRightCorner.x * scX, loc.topRightCorner.y * scY);
+        displayCtx.lineTo(loc.bottomRightCorner.x * scX, loc.bottomRightCorner.y * scY);
+        displayCtx.lineTo(loc.bottomLeftCorner.x * scX, loc.bottomLeftCorner.y * scY);
+        displayCtx.closePath();
+        displayCtx.stroke();
+        displayCtx.restore();
+    }
+
+    function drawScanLine() {
+        scanLineY = (scanLineY + 10) % dispH;
+        var half = 28;
+        var grad = displayCtx.createLinearGradient(0, scanLineY - half, 0, scanLineY + half);
+        grad.addColorStop(0, 'rgba(255,255,255,0)');
+        grad.addColorStop(0.5, 'rgba(255,255,255,0.12)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        displayCtx.fillStyle = grad;
+        displayCtx.fillRect(0, scanLineY - half, dispW, half * 2);
+    }
+
+    /* =============================================
+       ЗВУК ПРИ ОБНАРУЖЕНИИ
+       ============================================= */
+    function playBeep() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            var osc = audioCtx.createOscillator();
+            var gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1046.5, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(1318.5, audioCtx.currentTime + 0.06);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.13);
+        } catch (_) { /* звук не критичен */ }
+    }
+
+    /* =============================================
+       ОБРАБОТЧИКИ UI
+       ============================================= */
+    var modeBtns = document.querySelectorAll('.btn[data-mode]');
+    for (var bi = 0; bi < modeBtns.length; bi++) {
+        modeBtns[bi].addEventListener('click', function () {
+            displayMode = this.dataset.mode;
+            for (var j = 0; j < modeBtns.length; j++) {
+                modeBtns[j].classList.remove('active');
+                modeBtns[j].setAttribute('aria-pressed', 'false');
             }
+            this.classList.add('active');
+            this.setAttribute('aria-pressed', 'true');
         });
+    }
 
-        /* === Запуск === */
-        startCamera();
-    })();
-    </script>
+    debugBtn.addEventListener('click', function () {
+        debugMode = !debugMode;
+        this.classList.toggle('active', debugMode);
+        this.setAttribute('aria-pressed', String(debugMode));
+    });
+
+    /* =============================================
+       ЗАПУСК
+       ============================================= */
+    startCamera();
+})();
+</script>
 </body>
 </html>
