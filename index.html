@@ -2,892 +2,1038 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RGB QR Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Debug Scanner — Desktop</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
-            --bg:#07070c;--surface:#0d0d15;--card:#111119;--border:#1a1a2a;
-            --fg:#e2e2ee;--muted:#585870;
-            --r:#ff3b3b;--r-bg:rgba(255,59,59,.07);--r-border:rgba(255,59,59,.28);
-            --g:#22e85c;--g-bg:rgba(34,232,92,.07);--g-border:rgba(34,232,92,.28);
-            --b:#3b8bff;--b-bg:rgba(59,139,255,.07);--b-border:rgba(59,139,255,.28);
-            --amber:#f5a623;--amber-bg:rgba(245,166,35,.07);--amber-border:rgba(245,166,35,.28);
-            --radius:14px;--radius-sm:8px
+            --bg:#08080e;--surface:#0e0e18;--card:#12121e;--card2:#161624;
+            --border:#1e1e32;--border-lt:#282840;
+            --fg:#e0e0f0;--fg2:#c0c0d4;--muted:#5a5a74;
+            --r:#ff3b3b;--r-bg:rgba(255,59,59,.06);--r-bd:rgba(255,59,59,.25);
+            --g:#22e85c;--g-bg:rgba(34,232,92,.06);--g-bd:rgba(34,232,92,.25);
+            --b:#3b8bff;--b-bg:rgba(59,139,255,.06);--b-bd:rgba(59,139,255,.25);
+            --amber:#f5a623;--amber-bg:rgba(245,166,35,.06);--amber-bd:rgba(245,166,35,.25);
         }
-        html{font-size:16px}
+        html{font-size:15px}
         body{
             font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--fg);
-            min-height:100dvh;display:flex;justify-content:center;overflow-x:hidden;
+            min-height:100vh;display:flex;justify-content:center;
+            padding:24px 20px 60px;
             background-image:
-                radial-gradient(ellipse at 15% -5%,rgba(255,59,59,.04) 0%,transparent 55%),
-                radial-gradient(ellipse at 85% -5%,rgba(59,139,255,.04) 0%,transparent 55%),
-                radial-gradient(ellipse at 50% 105%,rgba(34,232,92,.025) 0%,transparent 50%)
+                radial-gradient(ellipse at 20% -10%,rgba(255,59,59,.03) 0%,transparent 50%),
+                radial-gradient(ellipse at 80% -10%,rgba(59,139,255,.03) 0%,transparent 50%),
+                radial-gradient(ellipse at 50% 110%,rgba(34,232,92,.02) 0%,transparent 40%)
         }
-        .container{width:100%;max-width:520px;padding:18px 14px 48px}
-        header{text-align:center;margin-bottom:20px}
+        .app{width:100%;max-width:960px}
+        header{margin-bottom:24px}
         h1{
-            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.55rem;
-            letter-spacing:-.03em;
-            background:linear-gradient(100deg,var(--r) 0%,var(--g) 50%,var(--b) 100%);
-            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
+            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.5rem;
+            letter-spacing:-.03em;color:var(--fg)
         }
+        h1 span{color:var(--muted);font-weight:400;font-size:.95rem;margin-left:8px}
         .subtitle{color:var(--muted);font-size:.78rem;margin-top:4px}
 
-        .status-bar{display:flex;align-items:center;gap:7px;margin-bottom:7px;font-size:.74rem;color:var(--muted);padding:0 2px}
-        .status-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .35s}
-        .status-dot.active{background:var(--g);box-shadow:0 0 8px rgba(34,232,92,.55);animation:dotP 2s ease-in-out infinite}
-        .status-dot.error{background:var(--r)}
-        @keyframes dotP{0%,100%{opacity:1}50%{opacity:.35}}
-
-        .scanner-wrap{
-            position:relative;border-radius:var(--radius);overflow:hidden;
-            border:1px solid var(--border);background:#000;transition:box-shadow .45s ease
+        /* === Главный экран === */
+        .main-screen{
+            position:relative;border-radius:8px;overflow:hidden;
+            border:1px solid var(--border);background:#000;
+            min-height:200px;transition:border-color .3s,box-shadow .4s;
         }
-        .scanner-wrap.glow-r{box-shadow:0 0 36px rgba(255,59,59,.18),inset 0 0 24px rgba(255,59,59,.04)}
-        .scanner-wrap.glow-g{box-shadow:0 0 36px rgba(34,232,92,.18),inset 0 0 24px rgba(34,232,92,.04)}
-        .scanner-wrap.glow-b{box-shadow:0 0 36px rgba(59,139,255,.18),inset 0 0 24px rgba(59,139,255,.04)}
-        .scanner-wrap.glow-multi{box-shadow:0 0 36px rgba(255,255,255,.1),inset 0 0 20px rgba(255,255,255,.02)}
-        .scanner-wrap.glow-inv{box-shadow:0 0 30px rgba(245,166,35,.2),inset 0 0 20px rgba(245,166,35,.03)}
+        .main-screen.dragover{border-color:var(--amber);box-shadow:inset 0 0 40px rgba(245,166,35,.06)}
+        .main-screen.glow-r{box-shadow:0 0 30px rgba(255,59,59,.15)}
+        .main-screen.glow-g{box-shadow:0 0 30px rgba(34,232,92,.15)}
+        .main-screen.glow-b{box-shadow:0 0 30px rgba(59,139,255,.15)}
+        .main-screen.glow-inv{box-shadow:0 0 28px rgba(245,166,35,.15)}
+        #mainCanvas{display:none;width:100%;height:auto;image-rendering:auto}
 
-        #display{display:block;width:100%;height:auto}
-        .error-overlay{
-            position:absolute;inset:0;display:none;flex-direction:column;
-            align-items:center;justify-content:center;background:var(--surface);
-            padding:28px;text-align:center;gap:10px;z-index:2
+        .empty-state{
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            padding:48px 24px;color:var(--muted);text-align:center;gap:12px;
+            cursor:default;min-height:220px
         }
-        .error-overlay.visible{display:flex}
-        .error-overlay .err-icon{font-size:2.2rem;opacity:.45}
-        .error-overlay .err-msg{color:var(--muted);font-size:.85rem;line-height:1.6;white-space:pre-line}
+        .empty-state.hidden{display:none}
+        .empty-icon{
+            width:56px;height:56px;border:2px dashed var(--border-lt);border-radius:10px;
+            display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--border-lt)
+        }
+        .empty-state p{font-size:.82rem;line-height:1.6}
+        .empty-state kbd{
+            background:var(--card);border:1px solid var(--border);border-radius:4px;
+            padding:1px 6px;font-size:.75rem;font-family:'Space Grotesk',sans-serif;color:var(--fg2)
+        }
 
-        .controls{display:flex;gap:7px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+        /* === Тулбар === */
+        .toolbar{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+        .btn-group{display:flex;gap:4px}
         .btn{
-            font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.8rem;
-            padding:7px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);
+            font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.78rem;
+            padding:7px 14px;border:1px solid var(--border);border-radius:6px;
             background:var(--card);color:var(--muted);cursor:pointer;
-            transition:all .18s ease;outline:none;-webkit-tap-highlight-color:transparent;white-space:nowrap
+            transition:all .15s;outline:none;white-space:nowrap
         }
-        .btn:hover{background:var(--surface);color:var(--fg)}
+        .btn:hover{background:var(--card2);color:var(--fg2)}
         .btn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-        .btn:active{transform:scale(.96)}
+        .btn:active{transform:scale(.97)}
         .btn.active{color:var(--fg)}
-        .btn-color.active{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.07)}
-        .btn-r.active{border-color:var(--r-border);background:var(--r-bg);color:var(--r)}
-        .btn-g.active{border-color:var(--g-border);background:var(--g-bg);color:var(--g)}
-        .btn-b.active{border-color:var(--b-border);background:var(--b-bg);color:var(--b)}
-        .btn-debug{border-style:dashed;font-size:.75rem;padding:7px 12px;letter-spacing:.02em}
-        .btn-debug.active{border-style:dashed;border-color:var(--amber-border);background:var(--amber-bg);color:var(--amber)}
-
-        .info-row{
-            display:flex;align-items:center;justify-content:center;gap:6px;
-            margin-top:10px;font-size:.72rem;color:var(--muted);flex-wrap:wrap
+        .btn-primary{background:var(--card2);color:var(--fg);border-color:var(--border-lt)}
+        .btn-primary:hover{background:var(--surface);border-color:var(--muted)}
+        .btn-primary.active{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2)}
+        .btn-r.active{border-color:var(--r-bd);background:var(--r-bg);color:var(--r)}
+        .btn-g.active{border-color:var(--g-bd);background:var(--g-bg);color:var(--g)}
+        .btn-b.active{border-color:var(--b-bd);background:var(--b-bg);color:var(--b)}
+        .btn-dbg{border-style:dashed;font-size:.74rem}
+        .btn-dbg.active{border-color:var(--amber-bd);background:var(--amber-bg);color:var(--amber)}
+        .btn-secondary{
+            background:var(--card);color:var(--fg2);border-color:var(--border-lt);
+            font-size:.76rem;padding:8px 16px
         }
-        .info-label{opacity:.7}
-        .info-value{
-            font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--fg);opacity:.6
-        }
-        .info-sep{opacity:.3}
+        .btn-secondary:hover{background:var(--card2);border-color:var(--muted)}
 
-        .results{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+        /* === Настройки === */
+        .settings-bar{
+            display:flex;gap:16px;margin-top:12px;padding:10px 14px;
+            background:var(--card);border:1px solid var(--border);border-radius:8px;
+            flex-wrap:wrap;align-items:center;font-size:.78rem
+        }
+        .setting{display:flex;align-items:center;gap:6px;color:var(--muted)}
+        .setting label{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.73rem;white-space:nowrap}
+        .setting input[type="text"]{
+            width:180px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;
+            background:var(--surface);color:var(--fg);font-family:'Space Grotesk',sans-serif;
+            font-size:.78rem;outline:none;transition:border-color .2s
+        }
+        .setting input[type="text"]:focus{border-color:var(--amber)}
+        .toggle{
+            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.7rem;
+            padding:4px 10px;border-radius:4px;cursor:pointer;
+            border:1px solid var(--border);background:var(--surface);color:var(--muted);
+            transition:all .15s;min-width:38px;text-align:center
+        }
+        .toggle.on{background:var(--g-bg);border-color:var(--g-bd);color:var(--g)}
+        .setting-info{display:flex;gap:8px;color:var(--muted);font-size:.73rem;margin-left:auto}
+        .setting-info strong{color:var(--fg2);font-family:'Space Grotesk',sans-serif}
+        .setting-info .sep{opacity:.3}
+
+        /* === Grid Debug === */
+        .grid-section{margin-top:14px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+        .grid-section.hidden{display:none}
+        #gridCanvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+
+        /* === Результаты === */
+        .results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
         .result-card{
-            background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-            padding:11px 10px;transition:border-color .35s,background .35s,transform .25s;
-            min-height:84px;display:flex;flex-direction:column
+            background:var(--card);border:1px solid var(--border);border-radius:8px;
+            padding:14px 12px;display:flex;flex-direction:column;
+            transition:border-color .35s,background .35s;min-height:120px
         }
-        .result-card.pop{transform:scale(1.03)}
-        .r-card.found{border-color:var(--r-border);background:var(--r-bg)}
-        .g-card.found{border-color:var(--g-border);background:var(--g-bg)}
-        .b-card.found{border-color:var(--b-border);background:var(--b-bg)}
+        .result-card.pop{animation:cardPop .28s ease}
+        @keyframes cardPop{0%{transform:scale(1)}40%{transform:scale(1.025)}100%{transform:scale(1)}}
+        .r-card.found{border-color:var(--r-bd);background:var(--r-bg)}
+        .g-card.found{border-color:var(--g-bd);background:var(--g-bg)}
+        .b-card.found{border-color:var(--b-bd);background:var(--b-bg)}
 
         .result-header{
-            display:flex;align-items:center;gap:5px;
-            font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.76rem;
-            margin-bottom:4px;color:var(--muted)
+            display:flex;align-items:center;gap:6px;
+            font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.8rem;
+            margin-bottom:2px;color:var(--muted)
         }
-        .r-card .result-header{color:var(--r)}
-        .g-card .result-header{color:var(--g)}
-        .b-card .result-header{color:var(--b)}
-        .ch-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+        .r-card .result-header{color:var(--r)}.g-card .result-header{color:var(--g)}.b-card .result-header{color:var(--b)}
+        .ch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
         .ch-dot-r{background:var(--r)}.ch-dot-g{background:var(--g)}.ch-dot-b{background:var(--b)}
         .inv-badge{
             font-size:.55rem;font-family:'Space Grotesk',sans-serif;font-weight:700;
-            background:rgba(245,166,35,.15);color:var(--amber);padding:1px 5px;
-            border-radius:4px;margin-left:auto;opacity:0;transition:opacity .3s
+            background:var(--amber-bg);color:var(--amber);padding:1px 6px;
+            border-radius:3px;margin-left:auto;opacity:0;transition:opacity .25s
         }
         .inv-badge.visible{opacity:1}
 
         .result-meta{
-            font-size:.62rem;font-family:'Space Grotesk',sans-serif;font-weight:600;
-            color:var(--muted);margin-bottom:4px;min-height:14px;transition:color .3s
+            font-size:.66rem;font-family:'Space Grotesk',sans-serif;font-weight:600;
+            color:var(--muted);min-height:16px;margin-bottom:6px;transition:color .25s
         }
         .result-card.found .result-meta{color:var(--amber)}
 
         .result-value{
-            font-size:.72rem;color:var(--muted);word-break:break-all;line-height:1.4;
-            flex:1;transition:color .3s;overflow:hidden;display:-webkit-box;
-            -webkit-line-clamp:3;-webkit-box-orient:vertical
+            font-size:.76rem;color:var(--muted);word-break:break-all;line-height:1.45;
+            flex:1;transition:color .25s;overflow:hidden;
+            display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical
         }
         .result-card.found .result-value{color:var(--fg)}
+        .result-card .placeholder{color:var(--border-lt);font-style:italic;-webkit-line-clamp:1}
 
-        .best-box{
-            margin-top:12px;padding:11px 14px;background:var(--card);
-            border:1px solid var(--border);border-radius:var(--radius-sm);
-            text-align:center;font-size:.82rem;animation:slideUp .3s ease
+        .result-actions{display:flex;gap:6px;margin-top:8px}
+        .btn-copy{
+            width:30px;height:28px;display:flex;align-items:center;justify-content:center;
+            border:1px solid var(--border);border-radius:5px;background:var(--surface);
+            color:var(--muted);cursor:pointer;transition:all .15s;padding:0
         }
-        .best-box.hidden{display:none}
-        .best-label{color:var(--muted)}
-        .best-ch{font-family:'Space Grotesk',sans-serif;font-weight:700;margin-left:5px}
-        .best-ch.r{color:var(--r)}.best-ch.g{color:var(--g)}.best-ch.b{color:var(--b)}
-        .best-meta{font-size:.7rem;color:var(--amber);font-weight:600;margin-left:4px}
-        .best-data{display:block;margin-top:5px;font-size:.76rem;color:var(--fg);word-break:break-all;line-height:1.35}
+        .btn-copy:hover{background:var(--card2);color:var(--fg2);border-color:var(--border-lt)}
+        .btn-copy.hidden{display:none}
+        .btn-copy svg{width:13px;height:13px}
 
-        @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        /* === Actions === */
+        .actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+
+        /* === Toast === */
+        .toast{
+            position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+            background:var(--card2);border:1px solid var(--g-bd);
+            padding:10px 22px;border-radius:8px;color:var(--g);
+            font-size:.82rem;font-family:'Space Grotesk',sans-serif;font-weight:600;
+            opacity:0;transition:all .3s ease;pointer-events:none;z-index:100;
+            box-shadow:0 8px 32px rgba(0,0,0,.4)
+        }
+        .toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+
         @media(prefers-reduced-motion:reduce){
-            .status-dot.active{animation:none}
-            .result-card,.scanner-wrap,.inv-badge{transition:none}
+            .result-card{transition:none}
+            .toast{transition:opacity .15s}
         }
-        @media(max-width:400px){
-            h1{font-size:1.3rem}
-            .btn{padding:6px 11px;font-size:.76rem}
-            .btn-debug{padding:6px 9px;font-size:.7rem}
-            .result-card{padding:9px 8px;min-height:74px}
-            .result-value{font-size:.68rem;-webkit-line-clamp:2}
+        @media(max-width:640px){
+            body{padding:14px 10px 40px}
+            h1{font-size:1.25rem}h1 span{display:none}
+            .settings-bar{gap:10px;padding:8px 10px}
+            .setting input[type="text"]{width:130px}
+            .setting-info{margin-left:0;width:100%}
+            .results{grid-template-columns:1fr;gap:8px}
+            .result-card{min-height:80px}
         }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="app">
     <header>
-        <h1>RGB QR Scanner</h1>
-        <p class="subtitle">Мульти-порог · Инверсия · Независимые каналы</p>
+        <h1>QR Debug Scanner<span>Desktop</span></h1>
+        <p class="subtitle">Мульти-пороговая бинаризация · Инверсия · Визуализация каждого шага</p>
     </header>
 
-    <div class="scanner-wrap" id="scannerWrap">
-        <div class="status-bar">
-            <span class="status-dot" id="statusDot"></span>
-            <span id="statusText">Инициализация камеры...</span>
-        </div>
-        <canvas id="display" width="640" height="480"></canvas>
-        <div class="error-overlay" id="errorOverlay">
-            <span class="err-icon">&#x1f4f7;</span>
-            <span class="err-msg" id="errMsg"></span>
-        </div>
-    </div>
-
-    <nav class="controls" aria-label="Режим отображения">
-        <button class="btn btn-color active" data-mode="color" aria-pressed="true">Color</button>
-        <button class="btn btn-r" data-mode="r" aria-pressed="false">R</button>
-        <button class="btn btn-g" data-mode="g" aria-pressed="false">G</button>
-        <button class="btn btn-b" data-mode="b" aria-pressed="false">B</button>
-        <button class="btn btn-debug" id="debugBtn" aria-pressed="false">Debug</button>
-    </nav>
-
-    <div class="info-row">
-        <span class="info-label">Пороги:</span>
-        <span class="info-value" id="threshDisplay">100 · 140 · 180</span>
-        <span class="info-sep">|</span>
-        <span class="info-label">Версий / канал:</span>
-        <span class="info-value" id="versionsDisplay">6</span>
-        <span class="info-sep">|</span>
-        <span class="info-label">Всего попыток:</span>
-        <span class="info-value" id="totalDisplay">18</span>
-    </div>
-
-    <section class="results" role="region" aria-label="Результаты сканирования">
-        <div class="result-card r-card" id="card-r">
-            <div class="result-header"><span class="ch-dot ch-dot-r"></span><span>Red</span><span class="inv-badge" id="inv-r">INV</span></div>
-            <div class="result-meta" id="meta-r"></div>
-            <div class="result-value" id="result-r">...</div>
-        </div>
-        <div class="result-card g-card" id="card-g">
-            <div class="result-header"><span class="ch-dot ch-dot-g"></span><span>Green</span><span class="inv-badge" id="inv-g">INV</span></div>
-            <div class="result-meta" id="meta-g"></div>
-            <div class="result-value" id="result-g">...</div>
-        </div>
-        <div class="result-card b-card" id="card-b">
-            <div class="result-header"><span class="ch-dot ch-dot-b"></span><span>Blue</span><span class="inv-badge" id="inv-b">INV</span></div>
-            <div class="result-meta" id="meta-b"></div>
-            <div class="result-value" id="result-b">...</div>
+    <section class="main-screen" id="mainScreen">
+        <canvas id="mainCanvas"></canvas>
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">+</div>
+            <p>Перетащите фото сюда или вставьте из буфера <kbd>Ctrl+V</kbd><br>Нажмите кнопку «Загрузить фото» ниже</p>
         </div>
     </section>
 
-    <div class="best-box hidden" id="bestBox">
-        <span class="best-label">Лучший канал:</span>
-        <span class="best-ch" id="bestCh"></span>
-        <span class="best-meta" id="bestMeta"></span>
-        <span class="best-data" id="bestData"></span>
-    </div>
+    <section class="toolbar">
+        <button class="btn btn-primary" id="loadBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Загрузить фото
+        </button>
+        <input type="file" id="fileInput" hidden accept="image/jpeg,image/png,image/webp">
+        <div class="btn-group" id="channelGroup">
+            <button class="btn btn-primary active" data-ch="color">Color</button>
+            <button class="btn btn-r" data-ch="r">R</button>
+            <button class="btn btn-g" data-ch="g">G</button>
+            <button class="btn btn-b" data-ch="b">B</button>
+        </div>
+        <div class="btn-group" id="debugGroup">
+            <button class="btn btn-dbg active" data-debug="off">Debug Off</button>
+            <button class="btn btn-dbg" data-debug="color">Color Debug</button>
+            <button class="btn btn-dbg" data-debug="grid">Grid Debug</button>
+        </div>
+    </section>
+
+    <section class="settings-bar">
+        <div class="setting">
+            <label>Пороги:</label>
+            <input type="text" id="threshInput" value="100, 140, 180" spellcheck="false">
+        </div>
+        <div class="setting">
+            <label>Инверсия:</label>
+            <button class="toggle on" id="invToggle">ON</button>
+        </div>
+        <div class="setting">
+            <label>Auto Cycle:</label>
+            <button class="toggle" id="autoToggle">OFF</button>
+        </div>
+        <div class="setting-info">
+            <span>Версий/канал: <strong id="verCount">6</strong></span>
+            <span class="sep">|</span>
+            <span>Попыток: <strong id="totalCount">18</strong></span>
+        </div>
+    </section>
+
+    <section class="grid-section hidden" id="gridSection">
+        <canvas id="gridCanvas"></canvas>
+    </section>
+
+    <section class="results" id="resultsSection"></section>
+
+    <section class="actions">
+        <button class="btn btn-secondary" id="saveAllBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Сохранить debug-изображения
+        </button>
+        <button class="btn btn-secondary" id="saveCurBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Сохранить текущий канал
+        </button>
+    </section>
 </div>
 
-<video id="video" style="display:none" playsinline autoplay muted></video>
+<div class="toast" id="toast"></div>
 
 <script>
 (function () {
     'use strict';
 
     /* =============================================
-       КОНФИГУРАЦИЯ
+       КОНСТАНТЫ
        ============================================= */
-    var THRESHOLDS = [100, 140, 180];
-    var CHANNELS   = ['r', 'g', 'b'];
-    var CH_NAMES   = { r: 'Red', g: 'Green', b: 'Blue' };
-    var CH_COLORS  = { r: '#ff3b3b', g: '#22e85c', b: '#3b8bff' };
-    var INV_COLORS = { r: '#ff8c3b', g: '#a5e84c', b: '#6cb8ff' };
-    var FPS        = 5;
-    var INTERVAL   = 1000 / FPS;
+    const CHS = ['r', 'g', 'b'];
+    const CH_NAMES = { r: 'Red', g: 'Green', b: 'Blue' };
+    const CH_COLORS = { r: '#ff3b3b', g: '#22e85c', b: '#3b8bff' };
+    const INV_COLORS = { r: '#ff8c3b', g: '#a5e84c', b: '#6cb8ff' };
 
     /* =============================================
        DOM
        ============================================= */
-    var video       = document.getElementById('video');
-    var displayCvs  = document.getElementById('display');
-    var displayCtx  = displayCvs.getContext('2d', { willReadFrequently: false });
-    var scannerWrap = document.getElementById('scannerWrap');
-    var statusDot   = document.getElementById('statusDot');
-    var statusText  = document.getElementById('statusText');
-    var errOverlay  = document.getElementById('errorOverlay');
-    var errMsg      = document.getElementById('errMsg');
-    var bestBox     = document.getElementById('bestBox');
-    var bestCh      = document.getElementById('bestCh');
-    var bestMeta    = document.getElementById('bestMeta');
-    var bestData    = document.getElementById('bestData');
-    var debugBtn    = document.getElementById('debugBtn');
+    const mainCvs = document.getElementById('mainCanvas');
+    const mainCtx = mainCvs.getContext('2d');
+    const mainScreen = document.getElementById('mainScreen');
+    const emptyState = document.getElementById('emptyState');
+    const gridCvs = document.getElementById('gridCanvas');
+    const gridCtx = gridCvs.getContext('2d');
+    const gridSection = document.getElementById('gridSection');
+    const resultsSection = document.getElementById('resultsSection');
+    const fileInput = document.getElementById('fileInput');
+    const threshInput = document.getElementById('threshInput');
+    const invToggle = document.getElementById('invToggle');
+    const autoToggle = document.getElementById('autoToggle');
+    const verCountEl = document.getElementById('verCount');
+    const totalCountEl = document.getElementById('totalCount');
+    const toastEl = document.getElementById('toast');
 
     /* =============================================
        СОСТОЯНИЕ
        ============================================= */
-    var displayMode   = 'color';
-    var debugMode     = false;
-    var audioCtx      = null;
-    var scanLineY     = 0;
-    var processingTimer = null;
-    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let thresholds = [100, 140, 180];
+    let inversionOn = true;
+    let autoCycling = false;
+    let selectedCh = 'color';
+    let debugMode = 'off';
+    let imageLoaded = false;
+    let cycleTimer = null;
+    let cycleList = [];
+    let cycleIdx = 0;
 
-    // Состояние победителя для каждого канала
-    var winState = {};
-    for (var wi = 0; wi < CHANNELS.length; wi++) {
-        winState[CHANNELS[wi]] = {
-            found: false, data: null, threshold: null,
-            inverted: false, location: null
-        };
-    }
+    // Размеры
+    let aW = 0, aH = 0;
 
-    var prevResults = { r: null, g: null, b: null };
-    var prevMeta    = { r: '', g: '', b: '' };
+    // Буферы (переиспользуются)
+    let buf = {};
 
-    /* =============================================
-       РАЗМЕРЫ CANVAS
-       ============================================= */
-    var dispW = 640, dispH = 480;
-    var anW = 400, anH = 300;
-    var scX = 1, scY = 1;
+    // Результаты
+    let win = {};
 
     /* =============================================
-       OFFSCREEN CANVAS'Ы
+       OFFSCREEN CANVAS
        ============================================= */
-    var anCvs = document.createElement('canvas');
-    var anCtx = anCvs.getContext('2d', { willReadFrequently: true });
-
-    // Отображение грейскейл-каналов
-    var chCvs = {}, chCtx = {};
-    for (var ci = 0; ci < CHANNELS.length; ci++) {
-        var c = CHANNELS[ci];
-        chCvs[c] = document.createElement('canvas');
-        chCtx[c] = chCvs[c].getContext('2d');
-    }
-
-    // Временный canvas для рисования из ImageData
-    var tmpCvs = document.createElement('canvas');
-    var tmpCtx = tmpCvs.getContext('2d');
+    const anCvs = document.createElement('canvas');
+    const anCtx = anCvs.getContext('2d', { willReadFrequently: true });
+    const tmpCvs = document.createElement('canvas');
+    const tmpCtx = tmpCvs.getContext('2d');
 
     /* =============================================
-       БУФЕРЫ ПИКСЕЛЬНЫХ ДАННЫХ
-       Все выделяются один раз, переиспользуются.
-       Структура:
-         gray[ch]          — грейскейл для отображения
-         bins[ch][t]       — бинаризация, порог THRESHOLDS[t]
-         invs[ch][t]       — инверсия бинаризации
-         binImgs/ch][t]    — ImageData-обёртка (без копирования)
-         invImgs[ch][t]    — ImageData-обёртка
+       ИНИЦИАЛИЗАЦИЯ КАРТОЧЕК РЕЗУЛЬТАТОВ
        ============================================= */
-    var gray   = {};   // Uint8ClampedArray
-    var grayImg = {};  // ImageData
-    var bins   = {};   // Uint8ClampedArray[]
-    var invs   = {};   // Uint8ClampedArray[]
-    var binImgs = {};  // ImageData[]
-    var invImgs = {};  // ImageData[]
-
-    function initBuffers() {
-        var sz = anW * anH * 4;
-
-        for (var ci = 0; ci < CHANNELS.length; ci++) {
-            var ch = CHANNELS[ci];
-
-            // Грейскейл
-            gray[ch]   = new Uint8ClampedArray(sz);
-            grayImg[ch] = new ImageData(gray[ch], anW, anH);
-
-            // Бинаризация и инверсия для каждого порога
-            bins[ch]   = [];
-            invs[ch]   = [];
-            binImgs[ch] = [];
-            invImgs[ch] = [];
-
-            for (var t = 0; t < THRESHOLDS.length; t++) {
-                bins[ch].push(new Uint8ClampedArray(sz));
-                invs[ch].push(new Uint8ClampedArray(sz));
-                binImgs[ch].push(new ImageData(bins[ch][t], anW, anH));
-                invImgs[ch].push(new ImageData(invs[ch][t], anW, anH));
-            }
-
-            // Размер offscreen canvas
-            chCvs[ch].width  = anW;
-            chCvs[ch].height = anH;
+    function createResultCards() {
+        resultsSection.innerHTML = '';
+        for (const ch of CHS) {
+            const card = document.createElement('div');
+            card.className = 'result-card ' + ch + '-card';
+            card.id = 'card-' + ch;
+            card.innerHTML =
+                '<div class="result-header"><span class="ch-dot ch-dot-' + ch + '"></span><span>' + CH_NAMES[ch] + '</span><span class="inv-badge" id="inv-' + ch + '">INV</span></div>' +
+                '<div class="result-meta" id="meta-' + ch + '"></div>' +
+                '<div class="result-value placeholder" id="result-' + ch + '">Загрузите фото</div>' +
+                '<div class="result-actions"><button class="btn-copy hidden" id="copy-' + ch + '" title="Скопировать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></div>';
+            resultsSection.appendChild(card);
+            document.getElementById('copy-' + ch).addEventListener('click', function () { copyResult(ch); });
         }
-
-        tmpCvs.width  = anW;
-        tmpCvs.height = anH;
-
-        scX = dispW / anW;
-        scY = dispH / anH;
     }
 
     /* =============================================
-       КАМЕРА
+       БУФЕРЫ: выделяются один раз
        ============================================= */
-    function startCamera() {
-        if (typeof jsQR !== 'function') {
-            showError('Библиотека jsQR не загружена.\nПроверьте интернет и перезагрузите.');
-            return;
-        }
-        statusText.textContent = 'Запрос доступа к камере...';
-
-        navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: 'environment' },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            },
-            audio: false
-        }).then(function (stream) {
-            video.srcObject = stream;
-            video.play().then(onVideoReady).catch(onVideoReady);
-        }).catch(function (err) {
-            showError('Не удалось получить доступ к камере.\n' + err.message);
-        });
-    }
-
-    function onVideoReady() {
-        var vw = video.videoWidth, vh = video.videoHeight;
-        if (!vw || !vh) {
-            if (video.readyState >= 2) { vw = video.videoWidth; vh = video.videoHeight; }
-            else {
-                video.addEventListener('loadeddata', function h() {
-                    video.removeEventListener('loadeddata', h);
-                    onVideoReady();
-                });
-                return;
+    function rebuildBuffers() {
+        const sz = aW * aH * 4;
+        buf = {};
+        for (const ch of CHS) {
+            buf[ch] = {
+                gray: new Uint8ClampedArray(sz),
+                grayImg: null,
+                bins: [], invs: [],
+                binImgs: [], invImgs: []
+            };
+            buf[ch].grayImg = new ImageData(buf[ch].gray, aW, aH);
+            for (let t = 0; t < thresholds.length; t++) {
+                const b = new Uint8ClampedArray(sz);
+                const n = new Uint8ClampedArray(sz);
+                buf[ch].bins.push(b);
+                buf[ch].invs.push(n);
+                buf[ch].binImgs.push(new ImageData(b, aW, aH));
+                buf[ch].invImgs.push(new ImageData(n, aW, aH));
             }
         }
-
-        dispW = Math.min(640, vw);
-        dispH = Math.round(dispW * vh / vw);
-        displayCvs.width  = dispW;
-        displayCvs.height = dispH;
-
-        anW = Math.min(400, vw);
-        anH = Math.round(anW * vh / vw);
-        anCvs.width  = anW;
-        anCvs.height = anH;
-
-        initBuffers();
-
-        statusDot.classList.add('active');
-        statusText.textContent = 'Сканирование — ' + FPS + ' к/с';
-        processingTimer = setInterval(processFrame, INTERVAL);
+        tmpCvs.width = aW;
+        tmpCvs.height = aH;
+        updateInfoCounts();
     }
 
-    function showError(msg) {
-        statusDot.classList.add('error');
-        statusText.textContent = 'Ошибка';
-        errOverlay.classList.add('visible');
-        errMsg.textContent = msg;
-        displayCvs.style.display = 'none';
+    function updateInfoCounts() {
+        const perCh = thresholds.length * (inversionOn ? 2 : 1);
+        verCountEl.textContent = perCh;
+        totalCountEl.textContent = perCh * 3;
     }
 
     /* =============================================
-       ОСНОВНОЙ ЦИКЛ ОБРАБОТКИ
+       ЗАГРУЗКА ИЗОБРАЖЕНИЯ
        ============================================= */
-    function processFrame() {
-        // 1. Захват кадра
-        anCtx.drawImage(video, 0, 0, anW, anH);
-        var imgData = anCtx.getImageData(0, 0, anW, anH);
-        var px = imgData.data;
-        var len = px.length;
+    function handleFile(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                // Анализ — до 800px
+                aW = Math.min(800, img.width);
+                aH = Math.round(aW * img.height / img.width);
+                anCvs.width = aW; anCvs.height = aH;
+                anCtx.drawImage(img, 0, 0, aW, aH);
 
-        // 2. Разделение на каналы (грейскейл)
-        var rG = gray.r, gG = gray.g, bG = gray.b;
-        for (var i = 0; i < len; i += 4) {
-            var rv = px[i], gv = px[i + 1], bv = px[i + 2];
-            rG[i] = rv; rG[i+1] = rv; rG[i+2] = rv; rG[i+3] = 255;
-            gG[i] = gv; gG[i+1] = gv; gG[i+2] = gv; gG[i+3] = 255;
-            bG[i] = bv; bG[i+1] = bv; bG[i+2] = bv; bG[i+3] = 255;
-        }
+                // Главный canvas — по контейнеру
+                sizeMainCanvas();
+                // Grid canvas
+                sizeGridCanvas();
 
-        // Отрисовка грейскейл для не-debug режима
-        chCtx.r.putImageData(grayImg.r, 0, 0);
-        chCtx.g.putImageData(grayImg.g, 0, 0);
-        chCtx.b.putImageData(grayImg.b, 0, 0);
+                rebuildBuffers();
+                analyze();
+                renderAll();
 
-        // 3. Бинаризация всех каналов по всем порогам
-        binarizeChannel('r');
-        binarizeChannel('g');
-        binarizeChannel('b');
+                imageLoaded = true;
+                emptyState.classList.add('hidden');
+                mainCvs.style.display = 'block';
 
-        // 4. Декодирование QR — каждый канал независимо
-        decodeChannel('r');
-        decodeChannel('g');
-        decodeChannel('b');
-
-        // 5. Обновление UI
-        updateResults();
-
-        // 6. Рендер
-        renderDisplay();
-    }
-
-    /* =============================================
-       БИНАРИЗАЦИЯ: один проход по каналу,
-       сразу все пороги + инверсии
-       ============================================= */
-    function binarizeChannel(ch) {
-        var src  = gray[ch];
-        var bArr = bins[ch];
-        var iArr = invs[ch];
-        var len  = src.length;
-
-        for (var i = 0; i < len; i += 4) {
-            var v = src[i];
-            for (var t = 0; t < THRESHOLDS.length; t++) {
-                var bv = v > THRESHOLDS[t] ? 255 : 0;
-                var iv = 255 - bv;
-                var b = bArr[t], n = iArr[t];
-                b[i] = bv; b[i+1] = bv; b[i+2] = bv; b[i+3] = 255;
-                n[i] = iv; n[i+1] = iv; n[i+2] = iv; n[i+3] = 255;
-            }
-        }
-    }
-
-    /* =============================================
-       ДЕКОДИРОВАНИЕ: для каждого порога — normal,
-       затем inverted. Early exit при успехе.
-       ============================================= */
-    function decodeChannel(ch) {
-        var ws = winState[ch];
-        ws.found = false;
-        ws.data  = null;
-        ws.location = null;
-        ws.threshold = null;
-        ws.inverted  = false;
-
-        for (var t = 0; t < THRESHOLDS.length; t++) {
-            // Обычная бинаризация
-            var res = jsQR(bins[ch][t], anW, anH);
-            if (res) {
-                ws.found    = true;
-                ws.data     = res.data;
-                ws.location = res.location;
-                ws.threshold = THRESHOLDS[t];
-                ws.inverted  = false;
-                return;
-            }
-
-            // Инвертированная бинаризация
-            res = jsQR(invs[ch][t], anW, anH);
-            if (res) {
-                ws.found    = true;
-                ws.data     = res.data;
-                ws.location = res.location;
-                ws.threshold = THRESHOLDS[t];
-                ws.inverted  = true;
-                return;
-            }
-        }
-    }
-
-    /* =============================================
-       ОБНОВЛЕНИЕ РЕЗУЛЬТАТОВ В DOM
-       ============================================= */
-    function updateResults() {
-        var hasNew   = false;
-        var foundArr = [];
-
-        for (var ci = 0; ci < CHANNELS.length; ci++) {
-            var ch   = CHANNELS[ci];
-            var ws   = winState[ch];
-            var el   = document.getElementById('result-' + ch);
-            var card = document.getElementById('card-' + ch);
-            var meta = document.getElementById('meta-' + ch);
-            var badge = document.getElementById('inv-' + ch);
-
-            if (ws.found) {
-                foundArr.push(ch);
-                var metaStr = 'T:' + ws.threshold + (ws.inverted ? ' INV' : '');
-
-                if (prevResults[ch] !== ws.data || prevMeta[ch] !== metaStr) {
-                    el.textContent   = ws.data;
-                    meta.textContent = metaStr;
-                    card.classList.add('found');
-                    card.classList.remove('pop');
-                    void card.offsetWidth;
-                    card.classList.add('pop');
-                    setTimeout((function (c) {
-                        return function () { c.classList.remove('pop'); };
-                    })(card), 280);
-                    hasNew = true;
+                // Обновить placeholder
+                for (const ch of CHS) {
+                    document.getElementById('result-' + ch).textContent = 'Не найдено';
+                    document.getElementById('result-' + ch).classList.remove('placeholder');
                 }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
 
-                badge.classList.toggle('visible', ws.inverted);
+    function sizeMainCanvas() {
+        const maxW = mainScreen.clientWidth;
+        const maxH = 520;
+        let w = aW, h = aH;
+        if (w > maxW) { h = h * maxW / w; w = maxW; }
+        if (h > maxH) { w = w * maxH / h; h = maxH; }
+        mainCvs.width = Math.round(w);
+        mainCvs.height = Math.round(h);
+    }
+
+    function sizeGridCanvas() {
+        const w = mainScreen.clientWidth;
+        const cols = thresholds.length;
+        const cellH = Math.min(240, Math.round(w / cols * (aH / aW)));
+        gridCvs.width = w;
+        gridCvs.height = cellH * (inversionOn ? 2 : 1);
+    }
+
+    /* =============================================
+       АНАЛИЗ
+       ============================================= */
+    function analyze() {
+        const imgData = anCtx.getImageData(0, 0, aW, aH);
+        const px = imgData.data;
+        const len = px.length;
+
+        // Разделение каналов
+        for (let i = 0; i < len; i += 4) {
+            const rv = px[i], gv = px[i + 1], bv = px[i + 2];
+            buf.r.gray[i] = rv; buf.r.gray[i + 1] = rv; buf.r.gray[i + 2] = rv; buf.r.gray[i + 3] = 255;
+            buf.g.gray[i] = gv; buf.g.gray[i + 1] = gv; buf.g.gray[i + 2] = gv; buf.g.gray[i + 3] = 255;
+            buf.b.gray[i] = bv; buf.b.gray[i + 1] = bv; buf.b.gray[i + 2] = bv; buf.b.gray[i + 3] = 255;
+        }
+
+        // Бинаризация + инверсия для каждого канала
+        for (const ch of CHS) {
+            const src = buf[ch].gray;
+            for (let i = 0; i < len; i += 4) {
+                const v = src[i];
+                for (let t = 0; t < thresholds.length; t++) {
+                    const bv = v > thresholds[t] ? 255 : 0;
+                    const iv = 255 - bv;
+                    const bb = buf[ch].bins[t], nn = buf[ch].invs[t];
+                    bb[i] = bv; bb[i + 1] = bv; bb[i + 2] = bv; bb[i + 3] = 255;
+                    nn[i] = iv; nn[i + 1] = iv; nn[i + 2] = iv; nn[i + 3] = 255;
+                }
+            }
+        }
+
+        // Декодирование — каждый канал независимо
+        for (const ch of CHS) {
+            win[ch] = { found: false, data: null, threshold: null, inverted: false, location: null };
+            for (let t = 0; t < thresholds.length; t++) {
+                let res = jsQR(buf[ch].bins[t], aW, aH);
+                if (res) { setWin(ch, res, thresholds[t], false); break; }
+                if (inversionOn) {
+                    res = jsQR(buf[ch].invs[t], aW, aH);
+                    if (res) { setWin(ch, res, thresholds[t], true); break; }
+                }
+            }
+        }
+
+        updateResultsUI();
+    }
+
+    function setWin(ch, res, th, inv) {
+        win[ch] = { found: true, data: res.data, threshold: th, inverted: inv, location: res.location };
+    }
+
+    /* =============================================
+       UI РЕЗУЛЬТАТОВ
+       ============================================= */
+    function updateResultsUI() {
+        let anyFound = false;
+        const foundArr = [];
+
+        for (const ch of CHS) {
+            const w = win[ch];
+            const el = document.getElementById('result-' + ch);
+            const card = document.getElementById('card-' + ch);
+            const meta = document.getElementById('meta-' + ch);
+            const badge = document.getElementById('inv-' + ch);
+            const copyBtn = document.getElementById('copy-' + ch);
+
+            if (w.found) {
+                foundArr.push(ch);
+                anyFound = true;
+                el.textContent = w.data;
+                el.classList.remove('placeholder');
+                card.classList.add('found');
+                meta.textContent = 'T:' + w.threshold + (w.inverted ? '  INV' : '');
+                badge.classList.toggle('visible', w.inverted);
+                copyBtn.classList.remove('hidden');
+
+                // Pop-анимация
+                card.classList.remove('pop');
+                void card.offsetWidth;
+                card.classList.add('pop');
             } else {
-                el.textContent   = '...';
-                meta.textContent = '';
+                el.textContent = 'Не найдено';
+                el.classList.remove('placeholder');
                 card.classList.remove('found', 'pop');
+                meta.textContent = '';
                 badge.classList.remove('visible');
+                copyBtn.classList.add('hidden');
             }
         }
 
-        if (hasNew) playBeep();
-
-        // «Лучший канал»
-        if (foundArr.length > 0) {
-            var best = foundArr[0];
-            var bws  = winState[best];
-            bestCh.textContent = CH_NAMES[best];
-            bestCh.className   = 'best-ch ' + best;
-            bestMeta.textContent = '(T:' + bws.threshold + (bws.inverted ? ', инверсия)' : ')');
-            bestData.textContent = bws.data;
-            bestBox.classList.remove('hidden');
-
-            if (foundArr.length > 1) {
-                scannerWrap.className = 'scanner-wrap glow-multi';
-            } else if (bws.inverted) {
-                scannerWrap.className = 'scanner-wrap glow-inv';
-            } else {
-                scannerWrap.className = 'scanner-wrap glow-' + best;
-            }
-        } else {
-            bestBox.classList.add('hidden');
-            scannerWrap.className = 'scanner-wrap';
-        }
-
-        for (var pi = 0; pi < CHANNELS.length; pi++) {
-            var pch = CHANNELS[pi];
-            prevResults[pch] = winState[pch].found ? winState[pch].data : null;
-            prevMeta[pch] = winState[pch].found
-                ? 'T:' + winState[pch].threshold + (winState[pch].inverted ? ' INV' : '')
-                : '';
+        // Подсветка главного экрана
+        mainScreen.className = 'main-screen';
+        if (foundArr.length === 1) {
+            const ch = foundArr[0];
+            mainScreen.classList.add(win[ch].inverted ? 'glow-inv' : 'glow-' + ch);
         }
     }
 
     /* =============================================
-       РЕНДЕР НА ОСНОВНОМ CANVAS
+       РЕНДЕР
        ============================================= */
-    function renderDisplay() {
-        displayCtx.fillStyle = '#000';
-        displayCtx.fillRect(0, 0, dispW, dispH);
+    function renderAll() {
+        renderMain();
+        if (debugMode === 'grid') renderGrid();
+    }
 
-        if (debugMode) {
-            if (displayMode === 'color') {
-                drawDebugAllChannels();
-            } else {
-                drawDebugSingleChannel(displayMode);
-            }
+    function renderMain() {
+        if (!imageLoaded) return;
+        const ctx = mainCtx;
+        const w = mainCvs.width, h = mainCvs.height;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, h);
+
+        if (debugMode === 'color') {
+            renderColorDebug(ctx, w, h);
         } else {
-            drawNormalView();
-        }
-
-        drawCornerBrackets(debugMode ? 0.12 : 0.25);
-
-        if (!reducedMotion && !debugMode) drawScanLine();
-    }
-
-    /* --- Обычный вид --- */
-    function drawNormalView() {
-        var src;
-        switch (displayMode) {
-            case 'r': src = chCvs.r; break;
-            case 'g': src = chCvs.g; break;
-            case 'b': src = chCvs.b; break;
-            default:  src = video;
-        }
-        displayCtx.drawImage(src, 0, 0, dispW, dispH);
-
-        // Рамки найденных QR
-        for (var ci = 0; ci < CHANNELS.length; ci++) {
-            var ch = CHANNELS[ci];
-            if (winState[ch].found && winState[ch].location) {
-                var col = winState[ch].inverted ? INV_COLORS[ch] : CH_COLORS[ch];
-                drawQRFrame(winState[ch].location, col, winState[ch].inverted);
-            }
-        }
-    }
-
-    /* --- Debug: все каналы (3 колонки) --- */
-    function drawDebugAllChannels() {
-        displayCtx.imageSmoothingEnabled = false;
-        var colW = Math.floor(dispW / 3);
-        var remW = dispW - colW * 2;
-
-        for (var ci = 0; ci < CHANNELS.length; ci++) {
-            var ch  = CHANNELS[ci];
-            var ws  = winState[ch];
-            var x   = ci * colW;
-            var w   = ci < 2 ? colW : remW;
-            var imgData;
-
-            if (ws.found) {
-                var ti = THRESHOLDS.indexOf(ws.threshold);
-                imgData = ws.inverted ? invImgs[ch][ti] : binImgs[ch][ti];
+            // Показать фото или грейскейл канала
+            if (selectedCh === 'color') {
+                ctx.drawImage(anCvs, 0, 0, w, h);
+            } else if (autoCycling && cycleList.length > 0) {
+                // Auto cycling: показываем разные версии
+                const item = cycleList[cycleIdx];
+                const imgs = item.inv ? buf[selectedCh].invImgs : buf[selectedCh].binImgs;
+                tmpCtx.putImageData(imgs[item.t], 0, 0);
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(tmpCvs, 0, 0, w, h);
+                ctx.imageSmoothingEnabled = true;
+                drawCycleLabel(ctx, w, h, item);
             } else {
-                imgData = binImgs[ch][0];
+                const ch = selectedCh === 'color' ? 'r' : selectedCh;
+                if (buf[ch] && buf[ch].grayImg) {
+                    tmpCtx.putImageData(buf[ch].grayImg, 0, 0);
+                    ctx.drawImage(tmpCvs, 0, 0, w, h);
+                }
             }
 
+            // Рамки QR
+            if (debugMode === 'off') drawQRFrames(ctx, w, h);
+        }
+    }
+
+    function drawCycleLabel(ctx, w, h, item) {
+        ctx.save();
+        const txt = 'T:' + thresholds[item.t] + (item.inv ? ' INV' : '');
+        ctx.font = '600 12px "Space Grotesk",sans-serif';
+        const tw = ctx.measureText(txt).width + 12;
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(w - tw - 8, 6, tw, 22);
+        ctx.fillStyle = item.inv ? '#f5a623' : '#22e85c';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(txt, w - tw - 2, 17);
+        ctx.restore();
+    }
+
+    /* --- Color Debug: 3 колонки --- */
+    function renderColorDebug(ctx, w, h) {
+        const cols = CHS.length;
+        const colW = Math.floor(w / cols);
+        const remW = w - colW * (cols - 1);
+        ctx.imageSmoothingEnabled = false;
+
+        for (let ci = 0; ci < cols; ci++) {
+            const ch = CHS[ci];
+            const ww = ci < cols - 1 ? colW : remW;
+            const x = ci * colW;
+            const wn = win[ch];
+
+            // Выбираем версию для отображения
+            let imgData;
+            if (wn.found) {
+                const ti = thresholds.indexOf(wn.threshold);
+                imgData = wn.inverted ? buf[ch].invImgs[ti] : buf[ch].binImgs[ti];
+            } else {
+                imgData = buf[ch].binImgs[0];
+            }
             tmpCtx.putImageData(imgData, 0, 0);
-            displayCtx.drawImage(tmpCvs, x, 0, w, dispH);
+            ctx.drawImage(tmpCvs, x, 0, ww, h);
 
             // Подпись
-            var label = ch.toUpperCase();
-            if (ws.found) {
-                label += '  T:' + ws.threshold + (ws.inverted ? ' INV' : '');
-                label += '  \u2713'; // ✓
-            } else {
-                label += '  \u2014'; // —
+            let label = ch.toUpperCase();
+            if (wn.found) label += '  T:' + wn.threshold + (wn.inverted ? ' INV' : '') + '  \u2713';
+            else label += '  \u2014';
+
+            ctx.save();
+            ctx.font = '600 11px "Space Grotesk",sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+            const lw = ctx.measureText(label).width + 10;
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(x + ww / 2 - lw / 2, 5, lw, 18);
+            ctx.fillStyle = wn.found ? CH_COLORS[ch] : 'rgba(255,255,255,0.3)';
+            ctx.fillText(label, x + ww / 2, 8);
+
+            if (wn.found) {
+                ctx.strokeStyle = CH_COLORS[ch];
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x + 1, 1, ww - 2, h - 2);
             }
-
-            displayCtx.save();
-            displayCtx.font = '600 10px "Space Grotesk",sans-serif';
-            displayCtx.textAlign = 'center';
-            displayCtx.textBaseline = 'top';
-
-            // Фон подписи
-            var tw = displayCtx.measureText(label).width + 8;
-            var lx = x + w / 2 - tw / 2;
-            displayCtx.fillStyle = 'rgba(0,0,0,0.55)';
-            displayCtx.fillRect(lx, 4, tw, 16);
-
-            displayCtx.fillStyle = ws.found ? CH_COLORS[ch] : 'rgba(255,255,255,0.35)';
-            displayCtx.fillText(label, x + w / 2, 7);
-
-            // Рамка победителя
-            if (ws.found) {
-                displayCtx.strokeStyle = CH_COLORS[ch];
-                displayCtx.lineWidth = 2;
-                displayCtx.strokeRect(x + 1, 1, w - 2, dispH - 2);
-            }
-            displayCtx.restore();
+            ctx.restore();
         }
 
         // Разделители
-        displayCtx.strokeStyle = 'rgba(255,255,255,0.15)';
-        displayCtx.lineWidth = 1;
-        displayCtx.beginPath();
-        displayCtx.moveTo(colW, 0); displayCtx.lineTo(colW, dispH);
-        displayCtx.moveTo(colW * 2, 0); displayCtx.lineTo(colW * 2, dispH);
-        displayCtx.stroke();
-
-        displayCtx.imageSmoothingEnabled = true;
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let i = 1; i < cols; i++) { ctx.moveTo(i * colW, 0); ctx.lineTo(i * colW, h); }
+        ctx.stroke();
+        ctx.imageSmoothingEnabled = true;
     }
 
-    /* --- Debug: один канал (сетка 3×2) --- */
-    function drawDebugSingleChannel(ch) {
-        displayCtx.imageSmoothingEnabled = false;
+    /* --- Grid Debug --- */
+    function renderGrid() {
+        const ch = selectedCh === 'color' ? 'r' : selectedCh;
+        const ctx = gridCtx;
+        const gw = gridCvs.width, gh = gridCvs.height;
+        const cols = thresholds.length;
+        const rows = inversionOn ? 2 : 1;
+        const cellW = Math.floor(gw / cols);
+        const cellH = Math.floor(gh / rows);
+        const wn = win[ch];
 
-        var cols = THRESHOLDS.length;
-        var rows = 2; // normal + inverted
-        var cellW = Math.floor(dispW / cols);
-        var cellH = Math.floor(dispH / rows);
-        var ws = winState[ch];
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, gw, gh);
+        ctx.imageSmoothingEnabled = false;
 
-        for (var t = 0; t < THRESHOLDS.length; t++) {
-            // Верхний ряд: нормальная бинаризация
-            tmpCtx.putImageData(binImgs[ch][t], 0, 0);
-            displayCtx.drawImage(tmpCvs, t * cellW, 0, cellW, cellH);
+        for (let t = 0; t < cols; t++) {
+            // Нормальная
+            tmpCtx.putImageData(buf[ch].binImgs[t], 0, 0);
+            ctx.drawImage(tmpCvs, t * cellW, 0, t < cols - 1 ? cellW : gw - t * cellW, cellH);
 
-            // Нижний ряд: инвертированная
-            tmpCtx.putImageData(invImgs[ch][t], 0, 0);
-            displayCtx.drawImage(tmpCvs, t * cellW, cellH, cellW, dispH - cellH);
-        }
+            // Инверсия
+            if (inversionOn) {
+                tmpCtx.putImageData(buf[ch].invImgs[t], 0, 0);
+                ctx.drawImage(tmpCvs, t * cellW, cellH, t < cols - 1 ? cellW : gw - t * cellW, gh - cellH);
+            }
 
-        // Подписи ячеек
-        displayCtx.save();
-        displayCtx.font = '600 11px "Space Grotesk",sans-serif';
-        displayCtx.textAlign = 'center';
-        displayCtx.textBaseline = 'top';
-
-        for (var t = 0; t < THRESHOLDS.length; t++) {
-            var cx = t * cellW + cellW / 2;
-            var isWin = ws.found && ws.threshold === THRESHOLDS[t];
-
-            // Подпись «Нормальная»
-            drawCellLabel(cx, 5, 'T:' + THRESHOLDS[t], isWin && !ws.inverted, CH_COLORS[ch]);
-
-            // Подпись «Инвертированная»
-            drawCellLabel(cx, cellH + 5, 'T:' + THRESHOLDS[t] + ' INV', isWin && ws.inverted, '#f5a623');
+            // Подписи
+            const cx = t * cellW + cellW / 2;
+            const isWinNorm = wn.found && wn.threshold === thresholds[t] && !wn.inverted;
+            const isWinInv = wn.found && wn.threshold === thresholds[t] && wn.inverted;
+            drawGridLabel(ctx, cx, 5, 'T:' + thresholds[t], isWinNorm, CH_COLORS[ch]);
+            if (inversionOn) {
+                drawGridLabel(ctx, cx, cellH + 5, 'T:' + thresholds[t] + ' INV', isWinInv, '#f5a623');
+            }
 
             // Рамка победителя
-            if (isWin) {
-                var fy = ws.inverted ? cellH : 0;
-                var fh = ws.inverted ? (dispH - cellH) : cellH;
-                displayCtx.strokeStyle = ws.inverted ? '#f5a623' : CH_COLORS[ch];
-                displayCtx.lineWidth = 3;
-                displayCtx.strokeRect(t * cellW + 1.5, fy + 1.5, cellW - 3, fh - 3);
-
-                // Галочка
-                displayCtx.font = '700 22px "Space Grotesk",sans-serif';
-                displayCtx.fillStyle = ws.inverted ? '#f5a623' : CH_COLORS[ch];
-                displayCtx.globalAlpha = 0.5;
-                displayCtx.fillText('\u2713', cx, fy + fh / 2 - 14);
-                displayCtx.globalAlpha = 1;
-                displayCtx.font = '600 11px "Space Grotesk",sans-serif';
-            }
+            if (isWinNorm) drawWinFrame(ctx, t * cellW, 0, cellW, cellH, CH_COLORS[ch]);
+            if (isWinInv && inversionOn) drawWinFrame(ctx, t * cellW, cellH, cellW, gh - cellH, '#f5a623');
         }
-        displayCtx.restore();
 
         // Сетка
-        displayCtx.strokeStyle = 'rgba(255,255,255,0.12)';
-        displayCtx.lineWidth = 1;
-        displayCtx.beginPath();
-        for (var t = 1; t < THRESHOLDS.length; t++) {
-            displayCtx.moveTo(t * cellW, 0); displayCtx.lineTo(t * cellW, dispH);
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let t = 1; t < cols; t++) { ctx.moveTo(t * cellW, 0); ctx.lineTo(t * cellW, gh); }
+        if (inversionOn) { ctx.moveTo(0, cellH); ctx.lineTo(gw, cellH); }
+        ctx.stroke();
+
+        ctx.imageSmoothingEnabled = true;
+    }
+
+    function drawGridLabel(ctx, cx, y, text, highlight, color) {
+        ctx.save();
+        ctx.font = '600 11px "Space Grotesk",sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        const tw = ctx.measureText(text).width + 10;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(cx - tw / 2, y, tw, 18);
+        ctx.fillStyle = highlight ? color : 'rgba(255,255,255,0.35)';
+        ctx.fillText(text, cx, y + 2);
+        ctx.restore();
+    }
+
+    function drawWinFrame(ctx, x, y, w, h, color) {
+        ctx.save();
+        ctx.strokeStyle = color; ctx.lineWidth = 3;
+        ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+        ctx.font = '700 28px "Space Grotesk",sans-serif';
+        ctx.fillStyle = color; ctx.globalAlpha = 0.4;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('\u2713', x + w / 2, y + h / 2);
+        ctx.restore();
+    }
+
+    /* --- Рамки QR на главном экране --- */
+    function drawQRFrames(ctx, w, h) {
+        const scX = w / aW, scY = h / aH;
+        for (const ch of CHS) {
+            const wn = win[ch];
+            if (!wn.found || !wn.location) continue;
+            const loc = wn.location;
+            const color = wn.inverted ? INV_COLORS[ch] : CH_COLORS[ch];
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = wn.inverted ? 2 : 3;
+            ctx.lineJoin = 'round';
+            ctx.shadowColor = color;
+            ctx.shadowBlur = wn.inverted ? 6 : 10;
+            if (wn.inverted) ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(loc.topLeftCorner.x * scX, loc.topLeftCorner.y * scY);
+            ctx.lineTo(loc.topRightCorner.x * scX, loc.topRightCorner.y * scY);
+            ctx.lineTo(loc.bottomRightCorner.x * scX, loc.bottomRightCorner.y * scY);
+            ctx.lineTo(loc.bottomLeftCorner.x * scX, loc.bottomLeftCorner.y * scY);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
         }
-        displayCtx.moveTo(0, cellH); displayCtx.lineTo(dispW, cellH);
-        displayCtx.stroke();
-
-        // Подпись канала внизу
-        displayCtx.save();
-        displayCtx.font = '600 10px "Space Grotesk",sans-serif';
-        displayCtx.textAlign = 'center';
-        displayCtx.textBaseline = 'bottom';
-        displayCtx.fillStyle = 'rgba(255,255,255,0.25)';
-        displayCtx.fillText('Канал: ' + CH_NAMES[ch] + '  |  ' + THRESHOLDS.length + ' порога \u00d7 2 = 6 версий', dispW / 2, dispH - 4);
-        displayCtx.restore();
-
-        displayCtx.imageSmoothingEnabled = true;
-    }
-
-    function drawCellLabel(cx, y, text, highlight, color) {
-        var tw = displayCtx.measureText(text).width + 8;
-        var lx = cx - tw / 2;
-        displayCtx.fillStyle = 'rgba(0,0,0,0.55)';
-        displayCtx.fillRect(lx, y, tw, 16);
-        displayCtx.fillStyle = highlight ? color : 'rgba(255,255,255,0.4)';
-        displayCtx.fillText(text, cx, y + 2);
     }
 
     /* =============================================
-       ВСПОМОГАТЕЛЬНЫЕ ЭЛЕМЕНТЫ CANVAS
+       ТОСТ
        ============================================= */
-    function drawCornerBrackets(alpha) {
-        var mx = Math.round(dispW * 0.06), my = Math.round(dispH * 0.06);
-        var sz = Math.round(Math.min(dispW, dispH) * 0.05);
-        displayCtx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
-        displayCtx.lineWidth = 2;
-        displayCtx.lineCap = 'round';
-
-        displayCtx.beginPath();
-        displayCtx.moveTo(mx, my + sz); displayCtx.lineTo(mx, my); displayCtx.lineTo(mx + sz, my);
-        displayCtx.stroke();
-        displayCtx.beginPath();
-        displayCtx.moveTo(dispW - mx - sz, my); displayCtx.lineTo(dispW - mx, my); displayCtx.lineTo(dispW - mx, my + sz);
-        displayCtx.stroke();
-        displayCtx.beginPath();
-        displayCtx.moveTo(mx, dispH - my - sz); displayCtx.lineTo(mx, dispH - my); displayCtx.lineTo(mx + sz, dispH - my);
-        displayCtx.stroke();
-        displayCtx.beginPath();
-        displayCtx.moveTo(dispW - mx - sz, dispH - my); displayCtx.lineTo(dispW - mx, dispH - my); displayCtx.lineTo(dispW - mx, dispH - my - sz);
-        displayCtx.stroke();
-    }
-
-    function drawQRFrame(loc, color, isInv) {
-        displayCtx.save();
-        displayCtx.strokeStyle = color;
-        displayCtx.lineWidth = isInv ? 2 : 3;
-        displayCtx.lineJoin = 'round';
-        displayCtx.shadowColor = color;
-        displayCtx.shadowBlur = isInv ? 6 : 10;
-        if (isInv) displayCtx.setLineDash([6, 4]);
-
-        displayCtx.beginPath();
-        displayCtx.moveTo(loc.topLeftCorner.x * scX, loc.topLeftCorner.y * scY);
-        displayCtx.lineTo(loc.topRightCorner.x * scX, loc.topRightCorner.y * scY);
-        displayCtx.lineTo(loc.bottomRightCorner.x * scX, loc.bottomRightCorner.y * scY);
-        displayCtx.lineTo(loc.bottomLeftCorner.x * scX, loc.bottomLeftCorner.y * scY);
-        displayCtx.closePath();
-        displayCtx.stroke();
-        displayCtx.restore();
-    }
-
-    function drawScanLine() {
-        scanLineY = (scanLineY + 10) % dispH;
-        var half = 28;
-        var grad = displayCtx.createLinearGradient(0, scanLineY - half, 0, scanLineY + half);
-        grad.addColorStop(0, 'rgba(255,255,255,0)');
-        grad.addColorStop(0.5, 'rgba(255,255,255,0.12)');
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
-        displayCtx.fillStyle = grad;
-        displayCtx.fillRect(0, scanLineY - half, dispW, half * 2);
+    let toastTimeout = null;
+    function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('visible');
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(function () { toastEl.classList.remove('visible'); }, 1800);
     }
 
     /* =============================================
-       ЗВУК ПРИ ОБНАРУЖЕНИИ
+       КОПИРОВАНИЕ РЕЗУЛЬТАТА
        ============================================= */
-    function playBeep() {
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            var osc = audioCtx.createOscillator();
-            var gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1046.5, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(1318.5, audioCtx.currentTime + 0.06);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + 0.13);
-        } catch (_) { /* звук не критичен */ }
+    function copyResult(ch) {
+        if (!win[ch] || !win[ch].found) return;
+        navigator.clipboard.writeText(win[ch].data).then(function () {
+            showToast('Скопировано: ' + CH_NAMES[ch]);
+        }).catch(function () {
+            showToast('Не удалось скопировать');
+        });
+    }
+
+    /* =============================================
+       СОХРАНЕНИЕ DEBUG ИЗОБРАЖЕНИЙ
+       ============================================= */
+    function saveDebugAll() {
+        const cols = thresholds.length;
+        const rows = inversionOn ? 6 : 3;
+        const saveCvs = document.createElement('canvas');
+        saveCvs.width = cols * aW + (cols + 1) * 4;
+        saveCvs.height = rows * aH + (rows + 1) * 4 + rows * 22;
+        const sCtx = saveCvs.getContext('2d');
+        sCtx.fillStyle = '#000';
+        sCtx.fillRect(0, 0, saveCvs.width, saveCvs.height);
+
+        let row = 0;
+        for (const ch of CHS) {
+            // Нормальные
+            for (let t = 0; t < cols; t++) {
+                tmpCtx.putImageData(buf[ch].binImgs[t], 0, 0);
+                sCtx.drawImage(tmpCvs, 4 + t * (aW + 4), 4 + row * (aH + 26), aW, aH);
+            }
+            drawSaveLabels(sCtx, cols, aW, 4 + row * (aH + 26) + aH + 2, CH_NAMES[ch], thresholds, CH_COLORS[ch], win[ch], false);
+            row++;
+            // Инверсии
+            if (inversionOn) {
+                for (let t = 0; t < cols; t++) {
+                    tmpCtx.putImageData(buf[ch].invImgs[t], 0, 0);
+                    sCtx.drawImage(tmpCvs, 4 + t * (aW + 4), 4 + row * (aH + 26), aW, aH);
+                }
+                drawSaveLabels(sCtx, cols, aW, 4 + row * (aH + 26) + aH + 2, CH_NAMES[ch] + ' INV', thresholds, '#f5a623', win[ch], true);
+                row++;
+            }
+        }
+        downloadCanvas(saveCvs, 'qr-debug-all');
+    }
+
+    function saveDebugCurrent() {
+        const ch = selectedCh === 'color' ? 'r' : selectedCh;
+        const cols = thresholds.length;
+        const rows = inversionOn ? 2 : 1;
+        const saveCvs = document.createElement('canvas');
+        saveCvs.width = cols * aW + (cols + 1) * 4;
+        saveCvs.height = rows * aH + (rows + 1) * 4 + rows * 22;
+        const sCtx = saveCvs.getContext('2d');
+        sCtx.fillStyle = '#000';
+        sCtx.fillRect(0, 0, saveCvs.width, saveCvs.height);
+
+        for (let t = 0; t < cols; t++) {
+            tmpCtx.putImageData(buf[ch].binImgs[t], 0, 0);
+            sCtx.drawImage(tmpCvs, 4 + t * (aW + 4), 4, aW, aH);
+        }
+        drawSaveLabels(sCtx, cols, aW, 4 + aH + 2, CH_NAMES[ch], thresholds, CH_COLORS[ch], win[ch], false);
+
+        if (inversionOn) {
+            for (let t = 0; t < cols; t++) {
+                tmpCtx.putImageData(buf[ch].invImgs[t], 0, 0);
+                sCtx.drawImage(tmpCvs, 4 + t * (aW + 4), aH + 26 + 4, aW, aH);
+            }
+            drawSaveLabels(sCtx, cols, aW, aH + 26 + 4 + aH + 2, CH_NAMES[ch] + ' INV', thresholds, '#f5a623', win[ch], true);
+        }
+        downloadCanvas(saveCvs, 'qr-debug-' + ch);
+    }
+
+    function drawSaveLabels(ctx, cols, cw, y, prefix, ths, color, wn, checkInv) {
+        ctx.font = '600 14px "Space Grotesk",sans-serif';
+        ctx.textBaseline = 'top';
+        for (let t = 0; t < cols; t++) {
+            const label = prefix + ' T:' + ths[t];
+            const x = 4 + t * (cw + 4);
+            const isWin = wn.found && wn.threshold === ths[t] && wn.inverted === checkInv;
+            ctx.fillStyle = isWin ? color : 'rgba(255,255,255,0.3)';
+            ctx.fillText(label + (isWin ? ' \u2713' : ''), x, y);
+        }
+    }
+
+    function downloadCanvas(cvs, name) {
+        cvs.toBlob(function (blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name + '-' + Date.now() + '.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            showToast('Сохранено: ' + name + '.png');
+        }, 'image/png');
+    }
+
+    /* =============================================
+       AUTO CYCLING
+       ============================================= */
+    function buildCycleList() {
+        cycleList = [];
+        const ch = selectedCh === 'color' ? 'r' : selectedCh;
+        for (let t = 0; t < thresholds.length; t++) {
+            cycleList.push({ t: t, inv: false });
+            if (inversionOn) cycleList.push({ t: t, inv: true });
+        }
+        cycleIdx = 0;
+    }
+
+    function startCycling() {
+        stopCycling();
+        if (!imageLoaded) return;
+        buildCycleList();
+        cycleTimer = setInterval(function () {
+            if (cycleList.length === 0) return;
+            cycleIdx = (cycleIdx + 1) % cycleList.length;
+            renderMain();
+        }, 1200);
+    }
+
+    function stopCycling() {
+        if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
     }
 
     /* =============================================
        ОБРАБОТЧИКИ UI
        ============================================= */
-    var modeBtns = document.querySelectorAll('.btn[data-mode]');
-    for (var bi = 0; bi < modeBtns.length; bi++) {
-        modeBtns[bi].addEventListener('click', function () {
-            displayMode = this.dataset.mode;
-            for (var j = 0; j < modeBtns.length; j++) {
-                modeBtns[j].classList.remove('active');
-                modeBtns[j].setAttribute('aria-pressed', 'false');
+    // Загрузка файла
+    document.getElementById('loadBtn').addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function () {
+        if (this.files[0]) handleFile(this.files[0]);
+        this.value = '';
+    });
+
+    // Drag & Drop
+    mainScreen.addEventListener('dragover', function (e) { e.preventDefault(); this.classList.add('dragover'); });
+    mainScreen.addEventListener('dragleave', function () { this.classList.remove('dragover'); });
+    mainScreen.addEventListener('drop', function (e) {
+        e.preventDefault(); this.classList.remove('dragover');
+        const f = e.dataTransfer.files[0];
+        if (f && f.type.startsWith('image/')) handleFile(f);
+    });
+
+    // Paste
+    document.addEventListener('paste', function (e) {
+        const items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.startsWith('image/')) {
+                handleFile(items[i].getAsFile());
+                break;
             }
+        }
+    });
+
+    // Кнопки каналов
+    document.querySelectorAll('#channelGroup .btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            selectedCh = this.dataset.ch;
+            document.querySelectorAll('#channelGroup .btn').forEach(function (b) { b.classList.remove('active'); });
             this.classList.add('active');
-            this.setAttribute('aria-pressed', 'true');
+            if (imageLoaded) {
+                if (autoCycling) { buildCycleList(); cycleIdx = 0; }
+                renderAll();
+            }
         });
+    });
+
+    // Кнопки debug
+    document.querySelectorAll('#debugGroup .btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            debugMode = this.dataset.debug;
+            document.querySelectorAll('#debugGroup .btn').forEach(function (b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            gridSection.classList.toggle('hidden', debugMode !== 'grid');
+            if (imageLoaded) renderAll();
+        });
+    });
+
+    // Пороги
+    threshInput.addEventListener('change', parseThresholds);
+    threshInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); parseThresholds(); } });
+
+    function parseThresholds() {
+        const raw = threshInput.value.split(/[,;\s]+/).map(function (s) { return parseInt(s.trim(), 10); }).filter(function (n) { return !isNaN(n) && n >= 1 && n <= 254; });
+        if (raw.length === 0) {
+            threshInput.value = '100, 140, 180';
+            thresholds = [100, 140, 180];
+        } else {
+            thresholds = raw;
+            threshInput.value = raw.join(', ');
+        }
+        if (imageLoaded) {
+            rebuildBuffers();
+            analyze();
+            sizeGridCanvas();
+            renderAll();
+            if (autoCycling) { buildCycleList(); cycleIdx = 0; }
+        } else {
+            updateInfoCounts();
+        }
     }
 
-    debugBtn.addEventListener('click', function () {
-        debugMode = !debugMode;
-        this.classList.toggle('active', debugMode);
-        this.setAttribute('aria-pressed', String(debugMode));
+    // Инверсия
+    invToggle.addEventListener('click', function () {
+        inversionOn = !inversionOn;
+        this.textContent = inversionOn ? 'ON' : 'OFF';
+        this.classList.toggle('on', inversionOn);
+        if (imageLoaded) {
+            // Пересоздаём только если нужно — буферы инверсии уже есть,
+            // но нужно пересчитать результаты (могут измениться)
+            // Буферы не пересоздаём — они уже содержат инверсии
+            analyze();
+            sizeGridCanvas();
+            renderAll();
+            if (autoCycling) { buildCycleList(); cycleIdx = 0; }
+        } else {
+            updateInfoCounts();
+        }
     });
+
+    // Auto Cycling
+    autoToggle.addEventListener('click', function () {
+        autoCycling = !autoCycling;
+        this.textContent = autoCycling ? 'ON' : 'OFF';
+        this.classList.toggle('on', autoCycling);
+        if (autoCycling) startCycling(); else { stopCycling(); if (imageLoaded) renderMain(); }
+    });
+
+    // Сохранение
+    document.getElementById('saveAllBtn').addEventListener('click', function () {
+        if (!imageLoaded) { showToast('Сначала загрузите фото'); return; }
+        saveDebugAll();
+    });
+    document.getElementById('saveCurBtn').addEventListener('click', function () {
+        if (!imageLoaded) { showToast('Сначала загрузите фото'); return; }
+        saveDebugCurrent();
+    });
+
+    /* =============================================
+       RESIZE
+       ============================================= */
+    let resizeRAF = null;
+    const ro = new ResizeObserver(function () {
+        if (resizeRAF) cancelAnimationFrame(resizeRAF);
+        resizeRAF = requestAnimationFrame(function () {
+            if (!imageLoaded) return;
+            sizeMainCanvas();
+            sizeGridCanvas();
+            renderAll();
+        });
+    });
+    ro.observe(mainScreen);
 
     /* =============================================
        ЗАПУСК
        ============================================= */
-    startCamera();
+    if (typeof jsQR !== 'function') {
+        emptyState.querySelector('p').textContent = 'Ошибка: библиотека jsQR не загружена. Проверьте интернет.';
+    }
+    createResultCards();
 })();
 </script>
 </body>
